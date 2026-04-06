@@ -1,38 +1,47 @@
-In DeFi, we don't give away "shares" in a company; we give away **Governance Tokens.** If the protocol makes $1 million in gas fees, the token holders decide what to do with that money.
+# TOKENOMICS.md: $NOFACE Token Economic Model
 
-**The "ROby" Economic Model:**
-*   **Total Supply:** 1,000,000,000 $ROBY (Fixed, no more can ever be made).
-*   **The Distribution (The "Split"):**
-    *   **40% Community Rewards (Liquidity Mining):** This is for the "Whales." If they put $1M into the DEX, they earn $ROBY tokens every second. This "pays" them to bring their millions.
-    *   **20% Ecosystem/Treasury:** This stays in a locked vault. You use this to pay for your **Audits** and **Marketing**.
-    *   **15% Team/Founders:** This is your 10-digit goal. These tokens are **locked for 4 years**. You can't sell them at 16; you can only start selling them when you are 19-20. This proves to users you aren't going to "Rug Pull" (run away with the money).
-    *   **15% Private Investors (VCs):** This is how you get your "thousands of dollars" for the audit.
-    *   **10% Airdrop:** Free tokens for early users to get "noise" and attention.
+## 1. Token Overview
+The **$NOFACE** token is the native utility and governance asset of the NOFACE Protocol. It is designed to coordinate the interests of users, liquidity providers, and the protocol treasury.
 
-**The "Gas Fee" Math:**
-*   Every trade on ROby has a 0.3% fee.
-*   **0.1%** goes to the Whales (to keep them happy).
-*   **0.1%** goes to "Burn" (making the token rarer and more expensive over time).
-*   **0.1%** goes to the Treasury (to pay for your lifestyle and the company).
+*   **Token Name:** NOFACE Protocol Token
+*   **Ticker:** $NOFACE
+*   **Total Supply:** 1,000,000,000 (Fixed; no further minting capability)
+*   **Decimals:** 18
 
----
+## 2. Token Distribution (Genesis Allocation)
+To ensure long-term stability and decentralization, the total supply is allocated across five primary categories.
 
-### 2. `FUNDING.md` (The Reputation & Audit Strategy)
-Reputation is the "Currency of DeFi." If people don't trust you, you have zero value. Since you are 15, your strategy is **"Prodigy Transparency."**
+| Category | Allocation | Vesting Schedule | Purpose |
+| :--- | :--- | :--- | :--- |
+| **Liquidity Mining** | **40%** | 4-Year Linear Emission | Incentivizing "Whales" and Liquidity Providers (LPs) to maintain deep pools. |
+| **Protocol Treasury** | **20%** | 2-Year Linear Vesting | Funding for audits, research, and legal compliance. |
+| **Founders & Team** | **15%** | 1-Year Cliff; 4-Year Vesting | Aligning long-term incentives for the core developers. |
+| **Private Investors** | **15%** | 6-Month Cliff; 2-Year Vesting | Raising initial capital for Tier-1 security audits. |
+| **Airdrop & Community** | **10%** | 100% Unlocked at Launch | Rewarding early testers and bootstrapping initial protocol volume. |
 
-**The 3-Step Funding Roadmap:**
+## 3. Token Utility & Value Accrual
+The $NOFACE token derives value through three primary mechanisms:
 
-#### Step 1: The "Grant & Hackathon" Phase (Age 15-16)
-*   **Cost:** $0.
-*   **Action:** Take your project to an Ethereum Hackathon (most are online). If you win a "Privacy Prize," you get **$5k–$20k** and a massive reputation boost.
-*   **Goal:** Get a "Grant" from a foundation like **Polygon** or **Arbitrum**. They pay for your first small audit just to get you to build on their chain.
+### A. Protocol Revenue Sharing (Staking)
+*   **Mechanism:** A 0.3% fee is charged on every "Shielding" and "Swap" transaction within the protocol.
+*   **Distribution:** 0.1% of every transaction fee is converted into $NOFACE and distributed to users who "Stake" their tokens. This provides a direct yield to long-term holders.
 
-#### Step 2: The "Seed Round" (Age 16-17)
-*   **Cost:** $50k - $200k.
-*   **Action:** Use your CITO connection. Show them the Working Beta and the Hackathon win. Pitch to "Angel Investors" (rich individuals). 
-*   **Goal:** Raise enough to pay for a **Tier 1 Audit** (OpenZeppelin or Trail of Bits). This is the "Stamp of Approval" that tells the world your code is a fortress.
+### B. Governance Rights
+*   **Mechanism:** $NOFACE holders can propose and vote on protocol parameters via a Decentralized Autonomous Organization (DAO).
+*   **Scope:** Voting includes fee adjustments, the selection of new "Shielded Assets," and the allocation of the Protocol Treasury.
 
-#### Step 3: The "Mainnet Launch" (Age 17-18)
-*   **Cost:** Millions.
-*   **Action:** Launch the token. The "Market Cap" of the token becomes your company's value. 
-*   **Goal:** Reach $100M+ in TVL. At this stage, your "Management" job begins. You hire the 24/7 security team and the developers.
+### C. Deflationary Pressure (Buyback & Burn)
+*   **Mechanism:** 0.05% of every transaction fee is used by the protocol to market-buy $NOFACE tokens and permanently "Burn" them (sending them to a null address).
+*   **Result:** This reduces the total supply over time, increasing the scarcity of the remaining tokens as protocol volume increases.
+
+## 4. Liquidity Incentives (The "Whale" Strategy)
+To attract and retain large-scale capital (Whales), the protocol utilizes **Tiered Rewards.**
+
+1.  **Liquidity Mining:** Users who provide assets (ETH/USDC) to the shielded pools receive $NOFACE tokens as a reward for providing "Anonymity Sets" for other users.
+2.  **Staking Boosts:** Users who hold and stake a high balance of $NOFACE receive a "Multiplier" on their liquidity mining rewards. This encourages large capital holders to hold the token rather than sell it.
+
+## 5. Security of Funds (Vesting & Escrow)
+To prevent "Rug-Pull" scenarios and ensure market confidence:
+*   **Smart Contract Escrow:** All team and investor tokens are held in a **Vesting Smart Contract**. 
+*   **The Cliff:** No team tokens can be sold for at least 12 months after launch.
+*   **Transparency:** All vesting addresses are public and can be monitored on the blockchain via Etherscan.
