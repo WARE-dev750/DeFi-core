@@ -1,40 +1,50 @@
-# NOFACE Protocol (N0-FACE)
-> **Null-Output Financial Anonymity & Cipher Engine.**
-> *Identity-less sovereignty for the Ethereum Virtual Machine (EVM).*
+## 1. Protocol Security Model
+The NOFACE security model is built on the principle of **Minimizing Human Intervention.** The protocol relies on mathematical proofs to verify transactions rather than administrative oversight.
 
-## 1. Abstract
-**NOFACE** is a decentralized, non-custodial privacy primitive designed to break the deterministic link between on-chain identities and financial activities. By leveraging **Zero-Knowledge Succinct Non-Interactive Arguments of Knowledge (zk-SNARKs)**, NOFACE allows users to interact with DeFi ecosystems through an opaque, shielded-asset pool.
+*   **Immutability:** The core logic of the smart contracts is non-upgradeable. Once deployed, the bytecode cannot be modified.
+*   **Non-Custodial Design:** At no point does the protocol, its developers, or its administrative keys have custody of user assets. Control is strictly governed by the cryptographic ownership of nullifiers.
+*   **Zero-Knowledge Proofs:** Transaction validity is enforced by ZK-circuits. These circuits verify that a user has the right to spend an asset without revealing the asset's history or the user's identity.
 
-The protocol operates on a **Zero-Trust** basis: no metadata is stored, no "master keys" exist, and transaction validity is proven through mathematics rather than administrative permission.
+## 2. Smart Contract Architecture
+To protect against common decentralized finance (DeFi) exploits, the following technical standards are implemented:
 
-## 2. Core Primitive: The Shielded Ledger
-The heart of NOFACE is a **Merkle-Tree-based Shielded Pool**. 
-*   **Commitment Phase:** Assets are deposited into a smart contract, generating a cryptographic commitment (the "Nullifier").
-*   **The Cipher Layer:** Once inside the pool, assets become part of a collective "Set of Anonymity." The relationship between the depositor and the asset is mathematically severed.
-*   **Redemption Phase:** Users generate a **ZK-Proof** (using the **Noir** or **Circom** circuits) to prove they are the rightful owner of a valid commitment without revealing which one, allowing for a private withdrawal to a clean address.
+### A. Reentrancy Protection
+*   **Mechanism:** All state-changing functions follow the **Checks-Effects-Interactions (CEI)** pattern.
+*   **Guard:** Implementation of the `nonReentrant` modifier from OpenZeppelin to prevent recursive call attacks during asset transfers.
 
-## 3. Engineering Principles
-*   **Null-Output Logic:** The protocol aims for a "zero-leak" environment. Gas patterns, timing, and amounts are abstracted to prevent heuristic de-anonymization.
-*   **Permissionless Persistence:** NOFACE is an immutable tool. Once deployed, the code is autonomous. It cannot be "turned off" or "filtered" by any central entity.
-*   **ZK-Soundness:** We prioritize **Formal Verification** of our ZK-circuits to ensure the mathematical integrity of the "Nullifier" system, preventing double-spending or inflation.
+### B. Oracle Integrity (Price Feeds)
+*   **Mechanism:** To prevent price manipulation via Flash Loans, the protocol does not rely on internal liquidity for pricing.
+*   **Implementation:** Use of decentralized oracles (e.g., Chainlink) providing **Time-Weighted Average Prices (TWAP)** to ensure price stability across blocks.
 
-## 4. Operational Use Cases (Utility)
-NOFACE is designed for high-integrity privacy needs:
-*   **Confidential Payroll:** Allowing organizations to fulfill financial obligations without exposing their treasury structure or employee compensation.
-*   **Strategic Hedging:** Shielding large trade intents from MEV (Maximal Extractable Value) bots and front-running predators.
-*   **Sovereign Wealth Protection:** Protecting individual capital from targeted exploits and social-engineering attacks by obscuring public balances.
+### C. Integer Safety
+*   **Implementation:** Use of Solidity 0.8.x native overflow/underflow checks. Standard interactions with ERC-20 tokens are handled via the `SafeERC20` library to manage non-standard token behaviors.
 
-## 5. Development Roadmap (R&D)
+## 3. Privacy Engine (Zero-Knowledge Layer)
+The privacy engine utilizes a **Nullifier-based Shielded Pool**. 
 
-### Phase 1: The Nullifier Core
-*   [ ] Researching **Noir** circuit optimization for EVM compatibility.
-*   [ ] Implementation of a basic **Fixed-Denomination Shielded Pool**.
-*   [ ] Local simulation of "Nullifier" redemption to prevent double-spending.
+*   **Merkle Tree Root Verification:** Each withdrawal must provide a ZK-proof showing that their commitment exists in the protocol's Merkle Tree.
+*   **Nullifier Uniqueness:** To prevent "Double-Spending," every successful withdrawal marks a unique nullifier as "spent" on the blockchain. 
+*   **Circuit Soundness:** All ZK-circuits (Noir/Circom) must undergo **Formal Verification** to prove that no mathematical edge-case allows for the creation of unauthorized assets.
 
-### Phase 2: The Faceless Swap
-*   [ ] Integration of shielded liquidity into a private AMM (Automated Market Maker).
-*   [ ] Third-party mathematical audits of the ZK-circuits.
+## 4. Incident Response & Risk Management
 
-## 6. Technical Stack
-*   **Languages:** Solidity (Contracts), Noir (ZK Circuits), TypeScript (Client-side logic).
-*   **Tooling:** Remix IDE, GitHub Codespaces, OpenZeppelin Security Standards.
+### A. Administrative Access (Multi-Sig vs. Master Key)
+To prevent a single point of failure (a "Master Key" being stolen), the protocol utilizes a **3-of-5 Multi-Signature wallet** for administrative actions.
+*   **Scope:** Administrative powers are limited to triggering the "Circuit Breaker" and adjusting protocol parameters (e.g., fee rates).
+*   **Time-Lock:** All non-emergency administrative actions are subject to a **48-hour time-lock**, allowing the community to verify the change before it goes live.
+
+### B. Circuit Breaker (Emergency Pause)
+*   **Action:** In the event of a detected exploit, the Multi-Sig can trigger a `pause()` function.
+*   **Restriction:** The pause only affects new deposits. The withdrawal function remains accessible at all times to ensure users can exit the protocol.
+
+### C. Bug Bounty Program
+*   **Platform:** Hosted on **Immunefi**.
+*   **Incentive:** Rewards are tiered based on the severity of the vulnerability. The maximum payout for a "Critical" (fund-loss) bug is $5,000,000 USD, funded by the protocol treasury.
+
+## 5. Audit & Disclosure Requirements
+Before any Mainnet deployment, NOFACE requires:
+1.  **Contract Logic Audit:** Focus on state transitions and EVM-level security.
+2.  **ZK-Circuit Audit:** Mathematical review of circuit constraints and soundness.
+3.  **Public Disclosure:** All audit reports must be published in full on the project’s GitHub repository.
+
+---
