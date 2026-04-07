@@ -244,15 +244,16 @@ Administrative powers are held by a 3-of-5 Security Multisig until all audits co
 
 | Component | Status |
 | :--- | :--- |
-| Merkle Tree (IncrementalTree.sol) | ✅ Complete — Semaphore fork, Poseidon hash |
-| NofaceVault.sol | 🔨 In progress |
-| main.nr ZK Kernel | 🔨 In progress |
-| swap.nr / transfer.nr | ⏳ Pending kernel |
-| IntentPool.sol | ⏳ Pending vault |
-| BatchManager.sol | ⏳ Pending vault |
-| NofaceHook.sol | ⏳ Pending V1 |
-| $NOFACE Token | ⏳ Pending mainnet |
-| SDK | ⏳ Pending contracts |
+| LeanIMT + Poseidon2	| ✅ Complete — audited zk-kit|
+| NofaceVault.sol	| ✅ Complete — 4/4 tests passing |
+| main.nr ZK Kernel	| 🔨 Next |
+| Verifier.sol	| ⏳ Generated from main.nr |
+| swap.nr / transfer.nr	|⏳ Pending kernel |
+| IntentPool.sol	|⏳ Pending vault |
+| BatchManager.sol	|⏳ Pending vault |
+| NofaceHook.sol	| ⏳ Pending V1 |
+| $NOFACE Token	| ⏳ Pending mainnet |
+| SDK |	⏳ Pending contracts |
 
 ---
 
