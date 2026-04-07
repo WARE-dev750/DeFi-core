@@ -149,7 +149,7 @@ library IncrementalTreeLib {
     /**
      * @dev Returns the current root of the tree.
      */
-    function root(
+    function getRoot(
         IncrementalTreeData storage self
     ) internal view returns (uint256) {
         return self.root;

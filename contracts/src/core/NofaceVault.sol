@@ -296,7 +296,7 @@ contract NofaceVault is ReentrancyGuard, Ownable {
 
     /// @notice Returns the current Merkle root
     function currentRoot() external view returns (bytes32) {
-        return bytes32(_tree.root());
+        return bytes32(IncrementalTreeLib.getRoot(_tree));
     }
 
     /// @notice Returns the total number of deposits ever made
@@ -346,7 +346,7 @@ contract NofaceVault is ReentrancyGuard, Ownable {
 
     /// @dev Records the current tree root as a valid historical root
     function _recordRoot() internal {
-        bytes32 root = bytes32(_tree.root());
+        bytes32 root = bytes32(IncrementalTreeLib.getRoot(_tree));
         knownRoots[root] = true;
         emit RootAdded(root);
     }
