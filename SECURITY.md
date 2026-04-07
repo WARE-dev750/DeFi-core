@@ -1,52 +1,41 @@
-# SECURITY.md: ROby Protocol Security Architecture
+# SECURITY.md: NOFACE Protocol Technical Security Specifications
 
-## 1. The Hierarchy of Trust
-In a decentralized system, security is a zero-sum game between **Agility** (fixing bugs) and **Sovereignty** (protecting users from the developer).
+## 1. System Invariants
+The protocol is designed to maintain the following mathematical and logical conditions at all times:
+*   **Solvency Invariant:** The total value of assets in the vault must always equal the sum of unspent Merkle Tree commitments.
+*   **Nullifier Uniqueness:** A cryptographic nullifier can only be recorded as "spent" once. Any attempt to reuse a nullifier must result in a transaction revert.
+*   **Non-Custodial Design:** User private keys and withdrawal notes are never transmitted to the protocol. Control of assets is governed strictly by the cryptographic ownership of valid nullifiers.
 
-| Security Model | Risk Factor | Logic |
-| :--- | :--- | :--- |
-| **Admin Keys** | **Highest** | A single point of failure (Phishing, Extortion, Insider Threat). |
-| **Multi-Sig** | **Medium** | Collusion risk. If 3 of 5 signers are compromised, the protocol is lost. |
-| **Immutability** | **Lowest** | Math is constant. Risk shifts entirely to the initial code audit. |
+## 2. Zero-Knowledge Proof Integrity (Circuit Soundness)
+The security of the privacy layer depends on the mathematical soundness of the ZK-circuits (Noir/Circom).
+*   **Soundness Risk:** A bug in the circuit logic could allow an attacker to generate a "fake" proof to withdraw assets they do not own.
+*   **Mitigation:** All circuits must undergo **Formal Verification** to prove that the constraints correctly enforce nullifier uniqueness and Merkle Tree root validity.
+*   **Double-Constraint Pattern:** Every circuit is designed with redundant constraints to ensure that "witness generation" cannot be manipulated.
 
-**Logic Conclusion:** For a 10-digit target, the core logic must be **Immutable.** Humans are the weakest link in any encryption or security chain.
+## 3. Smart Contract Security Standards
+To mitigate Ethereum Virtual Machine (EVM) level exploits, NOFACE utilizes the following industry-standard patterns:
 
----
+### A. Execution Logic
+*   **Checks-Effects-Interactions (CEI):** All state changes occur before external contract calls to prevent recursive exploitation.
+*   **Reentrancy Protection:** Implementation of the `nonReentrant` modifier (OpenZeppelin) on all functions involving asset transfers.
 
-## 2. Attack Vector Mitigation
+### B. Economic Security
+*   **Oracle Manipulation:** NOFACE does not rely on internal pool liquidity for pricing. It utilizes **Chainlink TWAP (Time-Weighted Average Price)** oracles to prevent price distortion during single-block Flash Loan attacks.
+*   **SafeMath:** Use of Solidity 0.8.x native overflow protection and the `SafeERC20` library for all standardized token interactions.
 
-### A. Economic Attacks (Flash Loans)
-*   **Vulnerability:** Attackers use massive temporary liquidity to manipulate price oracles and drain pools.
-*   **Mathematical Defense:** Use **Time-Weighted Average Prices (TWAP)** and decentralized oracles (Chainlink).
-*   **Constraint:** No single transaction should be able to move the internal price of an asset by more than 2% without triggering a high-slippage penalty.
+## 4. Governance & Risk Management (The Guardrail Phase)
+Given the complexity of ZK-circuits, the protocol utilizes a **Temporary Proxy Architecture** during the initial 12–24 months of operation.
 
-### B. Logical Attacks (Reentrancy)
-*   **Vulnerability:** Calling an external contract before updating the internal balance.
-*   **Mathematical Defense:** Strict adherence to the **Checks-Effects-Interactions (CEI)** pattern.
-*   **Constraint:** Mandatory use of `ReentrancyGuard` on all state-changing functions.
+*   **3-of-5 Multi-Signature Wallet:** Administrative actions (e.g., triggering a pause or upgrading code) require approval from three out of five independent security guardians.
+*   **The Circuit Breaker (Emergency Pause):** The Multi-Sig can trigger a `pause()` function.
+    *   **Scope:** Deposits are paused.
+    *   **Exit Sovereignty:** The `withdraw()` function remains active, ensuring users can always redeem their nullifiers and exit the protocol.
+*   **48-Hour Timelock:** All non-emergency upgrades are subject to a public 48-hour delay, allowing the community to verify the code change before execution.
 
-### C. Privacy Attacks (Heuristics)
-*   **Vulnerability:** Eavesdropping on metadata (timing, gas amounts, IP addresses) to de-anonymize users.
-*   **Mathematical Defense:** **zk-SNARKs (Zero-Knowledge Succinct Non-Interactive Arguments of Knowledge).**
-*   **Constraint:** Transactions are only valid if they include a mathematically verifiable proof that the sender has the balance, without revealing the balance or the sender's address.
+## 5. Audit & Disclosure Requirements
+Deployment to an Ethereum Layer-2 Mainnet requires a two-stage security validation:
+1.  **Technical Logic Audit:** A line-by-line review of the Solidity contracts focusing on state transitions and access control.
+2.  **ZK-Circuit Audit:** A specialized review of mathematical constraints, "trusted setup" (if applicable), and circuit soundness.
+3.  **Public Bug Bounty:** Integration with **Immunefi**, offering rewards of up to $5,000,000 USD for critical (fund-loss) vulnerabilities.
 
----
-
-## 3. Governance & "The Kill Switch"
-
-To balance the "Immutable" risk (if a bug is found), ROby Protocol utilizes a **Decentralized Circuit Breaker.**
-
-1.  **The Sentinel Role:** An automated bot monitors the Total Value Locked (TVL).
-2.  **The Trigger:** If more than 10% of TVL leaves the protocol in a single block (mathematically impossible in normal trading), the protocol enters **"Safe Mode."**
-3.  **Safe Mode:** Withdrawals are paused for 24 hours. This provides the only window for a **Multi-Sig** of audited security experts to review the code. 
-4.  **The Expiry:** If no action is taken in 24 hours, Safe Mode expires automatically. This prevents "Founder Hostage" scenarios.
-
----
-
-## 4. Disclosure Policy (Bug Bounty)
-
-*   **Logic:** It is mathematically more profitable for a hacker to report a bug for $2M than to steal $100M and be hunted by global law enforcement for life (decreasing the utility of the stolen funds).
-*   **The Bounty:** 10% of the "at-risk" funds, capped at $5,000,000 USD.
-*   **Immunity:** ROby Protocol guarantees legal "Safe Harbor" for any researcher who discovers a vulnerability and discloses it privately without exploiting it.
-
----
+***
