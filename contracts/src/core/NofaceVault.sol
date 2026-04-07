@@ -27,11 +27,28 @@ pragma solidity ^0.8.23;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../libraries/IncrementalTree.sol";
 
-contract NofaceVault is ReentrancyGuard, Ownable {
+contract NofaceVault is Ownable {
+
+    // ─────────────────────────────────────────────────────────
+    // REENTRANCY GUARD (manual — uses SSTORE not TSTORE)
+    // OZ v5 ReentrancyGuard uses transient storage which
+    // behaves unexpectedly in Foundry tests on Cancun.
+    // This uses regular storage — identical security guarantee.
+    // ─────────────────────────────────────────────────────────
+    uint256 private _reentrancyStatus;
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
+
+    modifier nonReentrant() {
+        require(_reentrancyStatus != _ENTERED, "ReentrancyGuard: reentrant call");
+        _reentrancyStatus = _ENTERED;
+        _;
+        _reentrancyStatus = _NOT_ENTERED;
+    }
+
     using SafeERC20 for IERC20;
     using IncrementalTreeLib for IncrementalTreeData;
 
@@ -132,6 +149,7 @@ contract NofaceVault is ReentrancyGuard, Ownable {
         if (_treasury == address(0)) revert ZeroAddress();
         if (_owner    == address(0)) revert ZeroAddress();
 
+        _reentrancyStatus = _NOT_ENTERED;
         token    = IERC20(_token);
         treasury = _treasury;
 
