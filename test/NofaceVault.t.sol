@@ -14,9 +14,20 @@ contract MockUSDC is ERC20 {
 contract NofaceVaultTest is Test {
     NofaceVault vault;
     MockUSDC    usdc;
+
     address user     = address(0xA11CE);
     address fresh    = address(0xBEEF);
     address treasury = address(0xFEE5);
+
+    // BN254 scalar field modulus — all leaves must be below this
+    // The real NOFACE SDK reduces commitments into this field before deposit
+    uint256 internal constant SNARK_SCALAR_FIELD =
+        21888242871839275222246405745257275088548364400416034343698204186575808495617;
+
+    // Reduces a keccak256 hash into a valid BN254 field element
+    function _toField(bytes32 h) internal pure returns (bytes32) {
+        return bytes32(uint256(h) % SNARK_SCALAR_FIELD);
+    }
 
     function setUp() public {
         usdc  = new MockUSDC();
@@ -27,7 +38,7 @@ contract NofaceVaultTest is Test {
     function test_DepositIncreasesLeafCount() public {
         vm.startPrank(user);
         usdc.approve(address(vault), vault.DENOM_SMALL());
-        vault.deposit(keccak256("note_1"), vault.DENOM_SMALL());
+        vault.deposit(_toField(keccak256("note_1")), vault.DENOM_SMALL());
         vm.stopPrank();
         assertEq(vault.totalDeposits(), 1);
     }
@@ -36,36 +47,45 @@ contract NofaceVaultTest is Test {
         bytes32 rootBefore = vault.currentRoot();
         vm.startPrank(user);
         usdc.approve(address(vault), vault.DENOM_SMALL());
-        vault.deposit(keccak256("note_2"), vault.DENOM_SMALL());
+        vault.deposit(_toField(keccak256("note_2")), vault.DENOM_SMALL());
         vm.stopPrank();
-        assertTrue(vault.currentRoot() != rootBefore);
+        bytes32 rootAfter = vault.currentRoot();
+        assertTrue(rootBefore != rootAfter);
     }
 
     function test_WithdrawReleasesFunds() public {
-        bytes32 commitment    = keccak256("note_3");
+        bytes32 commitment    = _toField(keccak256("note_3"));
         bytes32 nullifierHash = keccak256("null_3");
+        uint256 denom         = vault.DENOM_SMALL();
+
         vm.startPrank(user);
-        usdc.approve(address(vault), vault.DENOM_SMALL());
-        vault.deposit(commitment, vault.DENOM_SMALL());
+        usdc.approve(address(vault), denom);
+        vault.deposit(commitment, denom);
         vm.stopPrank();
-        bytes32 root = vault.currentRoot();
-        vault.withdraw(nullifierHash, root, fresh, vault.DENOM_SMALL(), "");
-        assertTrue(vault.isSpent(nullifierHash));
-        uint256 fee = (vault.DENOM_SMALL() * vault.FEE_BPS()) / vault.BPS_DENOM();
-        assertEq(usdc.balanceOf(fresh), vault.DENOM_SMALL() - fee);
+
+        bytes32 root          = vault.currentRoot();
+        uint256 balBefore     = usdc.balanceOf(fresh);
+        vault.withdraw(nullifierHash, root, fresh, denom, "");
+        uint256 balAfter      = usdc.balanceOf(fresh);
+
+        uint256 fee           = (denom * 30) / 10_000;
+        assertEq(balAfter - balBefore, denom - fee);
     }
 
     function test_DoubleSpendReverts() public {
-        bytes32 commitment    = keccak256("note_4");
+        bytes32 commitment    = _toField(keccak256("note_4"));
         bytes32 nullifierHash = keccak256("null_4");
+        uint256 denom         = vault.DENOM_SMALL();
+
         vm.startPrank(user);
-        usdc.approve(address(vault), vault.DENOM_SMALL());
-        vault.deposit(commitment, vault.DENOM_SMALL());
+        usdc.approve(address(vault), denom);
+        vault.deposit(commitment, denom);
         vm.stopPrank();
+
         bytes32 root = vault.currentRoot();
-        uint256 denom = vault.DENOM_SMALL();
         vault.withdraw(nullifierHash, root, fresh, denom, "");
         assertTrue(vault.isSpent(nullifierHash));
+
         vm.expectRevert(NofaceVault.NullifierAlreadySpent.selector);
         vault.withdraw(nullifierHash, root, fresh, denom, "");
     }

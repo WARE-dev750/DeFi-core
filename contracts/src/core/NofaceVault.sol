@@ -28,7 +28,7 @@ pragma solidity ^0.8.23;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../libraries/IncrementalTree.sol";
+import {InternalLeanIMT, LeanIMTData} from "@zk-kit/lean-imt.sol/InternalLeanIMT.sol";
 
 contract NofaceVault is Ownable {
 
@@ -50,14 +50,11 @@ contract NofaceVault is Ownable {
     }
 
     using SafeERC20 for IERC20;
-    using IncrementalTreeLib for IncrementalTreeData;
+    using InternalLeanIMT for LeanIMTData;
 
     // ─────────────────────────────────────────────────────────
     // CONSTANTS
     // ─────────────────────────────────────────────────────────
-
-    // Merkle tree depth — supports 2^20 = 1,048,576 deposits
-    uint8 public constant TREE_DEPTH = 20;
 
     // Fixed deposit denominations for maximum privacy
     // Every deposit looks identical on-chain
@@ -80,7 +77,7 @@ contract NofaceVault is Ownable {
 
     // The Merkle tree — tracks all commitments
     // Built today from Semaphore / Ethereum Foundation
-    IncrementalTreeData private _tree;
+    LeanIMTData private _tree;
 
     // Nullifier registry — prevents double spend
     // Once a nullifier is spent it can NEVER be spent again
@@ -153,10 +150,7 @@ contract NofaceVault is Ownable {
         token    = IERC20(_token);
         treasury = _treasury;
 
-        // Initialize the Merkle tree with depth 20
-        // Uses Poseidon2 hash — ZK-friendly, Ethereum Foundation audited
-        _tree.init(TREE_DEPTH);
-
+        // LeanIMT needs no initialisation — dynamic depth, starts empty
         // Record the empty tree root as valid
         // Allows proofs to be generated before any deposits
         _recordRoot();
@@ -199,11 +193,7 @@ contract NofaceVault is Ownable {
 
         // Commitment must not already exist in the tree
         // Duplicate commitments would allow replay attacks
-        if (_tree.has(commitment)) revert CommitmentAlreadyExists();
-
-        // Check tree is not full
-        // At depth 20 this supports 1,048,576 deposits
-        if (_tree.numberOfLeaves >= 2 ** TREE_DEPTH) revert TreeFull();
+        if (_tree._has(uint256(commitment))) revert CommitmentAlreadyExists();
 
         // Pull tokens from depositor BEFORE updating state
         // Follows checks-effects-interactions pattern
@@ -211,7 +201,8 @@ contract NofaceVault is Ownable {
 
         // Insert commitment into Merkle tree
         // This is the cryptographic record of the deposit
-        uint256 leafIndex = _tree.insert(commitment);
+        uint256 leafIndex = _tree.size;
+        _tree._insert(uint256(commitment));
 
         // Record the new root as valid for future proofs
         _recordRoot();
@@ -314,17 +305,17 @@ contract NofaceVault is Ownable {
 
     /// @notice Returns the current Merkle root
     function currentRoot() external view returns (bytes32) {
-        return bytes32(IncrementalTreeLib.getRoot(_tree));
+        return bytes32(_tree._root());
     }
 
     /// @notice Returns the total number of deposits ever made
     function totalDeposits() external view returns (uint256) {
-        return _tree.numberOfLeaves;
+        return _tree.size;
     }
 
     /// @notice Check if a commitment exists in the tree
     function commitmentExists(bytes32 commitment) external view returns (bool) {
-        return _tree.has(commitment);
+        return _tree._has(uint256(commitment));
     }
 
     /// @notice Check if a nullifier has been spent
@@ -364,7 +355,7 @@ contract NofaceVault is Ownable {
 
     /// @dev Records the current tree root as a valid historical root
     function _recordRoot() internal {
-        bytes32 root = bytes32(IncrementalTreeLib.getRoot(_tree));
+        bytes32 root = bytes32(_tree._root());
         knownRoots[root] = true;
         emit RootAdded(root);
     }

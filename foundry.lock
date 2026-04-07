@@ -11,6 +11,12 @@
       "rev": "5fd1781b1454fd1ef8e722282f86f9293cacf256"
     }
   },
+  "lib/semaphore": {
+    "tag": {
+      "name": "v4.14.2",
+      "rev": "1ba284402acaa353ce735c0b98e1ff20de665932"
+    }
+  },
   "lib/solady": {
     "tag": {
       "name": "v0.1.26",
