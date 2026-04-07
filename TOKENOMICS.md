@@ -1,4 +1,4 @@
-# TOKENOMICS.md: $NOFACE Token Economic Model
+# TOKENOMICS.md: $NOFACE Token Economic Model  123
 
 ## 1. Token Overview
 The **$NOFACE** token is the native utility and governance asset of the NOFACE Protocol. It coordinates the interests of users, liquidity providers, and the protocol treasury through mathematical incentives.
