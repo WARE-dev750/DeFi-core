@@ -1,0 +1,15 @@
+# Build artifacts
+contracts/out/
+cache/
+contracts/cache/
+
+# Foundry
+broadcast/
+
+# Node
+node_modules/
+
+# Environment
+.env
+.env.*
+.github/workflows/main.yml
