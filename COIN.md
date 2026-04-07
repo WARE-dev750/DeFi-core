@@ -1,46 +1,52 @@
-## 1. The Core Logic: Why does this coin exist?
-A coin only has value if it has **Utility** (a reason to use it) and **Scarcity** (a reason to hold it). 
+## 1. Token Specification
+The **$NOFACE** token is a standardized ERC-20 asset that serves as the core utility and governance instrument for the NOFACE Protocol.
 
-The $ROBY token is the **"Privacy Toll"** for the ecosystem. 
-*   **Privacy-as-a-Service:** To shield a transaction (make it private), the protocol charges a tiny fee in $ROBY.
-*   **Governance Power:** Holders of $ROBY decide which new features to add or which "Whale" gets a reward.
-*   **The Yield:** If you hold $ROBY and "Stake" it (lock it up), you get a percentage of every single gas fee collected by the DEX. **This is how you give people with millions a "percentage."**
+*   **Ticker:** $NOFACE
+*   **Total Supply:** 1,000,000,000 (Fixed; non-inflationary)
+*   **Decimals:** 18
+*   **Contract Standard:** OpenZeppelin ERC-20 with Permit (EIP-2612)
+
+## 2. Technical Logic: The "Shielded Wrapper" Model
+NOFACE Protocol does not attempt to create a new layer-1 privacy blockchain. Instead, it utilizes **Zero-Knowledge (ZK) Wrappers** for existing liquid assets.
+
+1.  **The Vault:** Users deposit transparent assets (e.g., ETH, USDC) into the NOFACE Vault.
+2.  **The zk-Asset:** The protocol issues a private, wrapped version (e.g., **zk-USDC**). 
+3.  **The Privacy Layer:** Inside the vault, these zk-assets are moved via **Nullifier-based transactions**. $NOFACE is the required "Gas" or "Toll" for every shielding/unshielding event.
+
+## 3. Token Utility & Value Accrual
+$NOFACE derives its market value through three primary protocol mechanisms:
+
+### A. Privacy-as-a-Service (Shielding Fees)
+*   Every time a user "Shields" (privatizes) or "Unshields" (withdraws) an asset, a 0.3% protocol fee is levied.
+*   A percentage of this fee is denominated in $NOFACE. This creates constant buying pressure on the token as protocol volume increases.
+
+### B. Governance & Parameter Control
+*   $NOFACE holders participate in the **NOFACE DAO**. 
+*   Voting power is used to adjust fee structures, select new "Shielded Assets" for inclusion, and manage the Protocol Treasury.
+
+### C. Staking & Yield Distribution
+*   Users who "Stake" (lock) their $NOFACE tokens receive a proportional share of the protocol’s generated transaction fees.
+*   This provides a recurring yield to long-term holders, incentivizing them to remove supply from the open market.
+
+## 4. Genesis Allocation & Vesting
+To ensure institutional-grade trust and prevent market manipulation, the total supply is distributed across five categories with strict vesting schedules.
+
+| Allocation | Percentage | Vesting Schedule | Purpose |
+| :--- | :--- | :--- | :--- |
+| **Liquidity Mining** | **40%** | 5-Year Linear | Incentivizing "Whale" liquidity providers. |
+| **Protocol Treasury** | **20%** | 3-Year Linear | Funding for audits, legal, and R&D. |
+| **Team & Founders** | **15%** | 1-Year Cliff; 4-Year Linear | Long-term commitment from core developers. |
+| **Private Investors** | **15%** | 6-Month Cliff; 2-Year Linear | Initial capital for Tier-1 security audits. |
+| **Community Airdrop** | **10%** | 100% Unlocked | Bootstrapping initial users and volume. |
+
+## 5. Economic Stability Mechanisms
+
+### A. Buyback & Burn
+*   A dedicated 0.1% of every transaction fee is used by the protocol to market-buy $NOFACE tokens and permanently "Burn" them (sending them to the `0x00...` address).
+*   This creates a **deflationary pressure** where the total supply of $NOFACE decreases as the protocol gains adoption.
+
+### B. The "Whale" Multiplier
+*   Liquidity providers who hold and stake a minimum threshold of $NOFACE receive a "Multiplier" on their rewards.
+*   This encourages large capital holders to maintain a significant position in the $NOFACE token to maximize their returns, reducing sell-pressure.
 
 ---
-
-## 2. The "Privacy Wrapper" Strategy
-We are **not** building a new blockchain like Monero. That is too slow and too hard. 
-*   **The Strategy:** We build on a fast network (like **Arbitrum** or **Polygon**). 
-*   **The Asset:** We create a "Wrapped" version of BTC, ETH, or USDC. 
-*   **The Magic:** When a user puts $1,000 of USDC into the ROby Vault, they get back 1,000 **"zk-ROby-USDC."** 
-*   **The Result:** Inside our vault, that money is now 100% private and "invisible" to the outside world. When they want to cash out, they "un-wrap" it. 
-
-**Conclusion:** Your coin ($ROBY) is the "Key" that locks and unlocks this private vault.
-
----
-
-## 3. Token Distribution (The 10-Digit Split)
-To reach a billion-dollar valuation, we must distribute the 1,000,000,000 tokens in a way that creates **Long-Term Trust.**
-
-| Group | Allocation | Purpose |
-| :--- | :--- | :--- |
-| **Liquidity Mining** | **40%** | The "Bribe" for Whales. Paid out over 5 years to people who provide millions in liquidity. |
-| **Protocol Treasury** | **20%** | The "War Chest." Used to pay for Audits, Marketing, and Legal. |
-| **Team & Founders** | **15%** | **Your Stake.** Locked for 1 year, then vested over 4 years. (Prevents "Rug Pull" fears). |
-| **Private Investors** | **15%** | This is how we get the initial $500k for the Tier-1 Audit. |
-| **Airdrop/Early Users** | **10%** | To create "Noise" and a community of thousands on Day 1. |
-
----
-
-## 4. Why $ROBY will be "Important" (The Moat)
-Why wouldn't people just use a different coin?
-1.  **The Privacy Premium:** ROby is the only place where you can trade, bet, and earn yield while staying 100% private. To do that, you *must* use $ROBY to pay the "Shielding Fee."
-2.  **The Burn:** 10% of all fees are used to "Buy Back and Burn" $ROBY. This means the supply goes down every day. **Basic Math: Lower Supply + Higher Demand = Higher Price.**
-3.  **The Whale Incentive:** We give "Whales" a higher percentage of rewards if they hold a certain amount of $ROBY. This "locks" millions of dollars worth of your coin in their wallets, so they can't sell it.
-
----
-
-## 5. Launch Strategy: The "Fair Launch" LBP
-To avoid being called a "scam," we use a **Liquidity Bootstrapping Pool (LBP).**
-*   **Logic:** We start the price high and let it drop over 3 days. People only buy when they think the price is fair.
-*   **Result:** No "Bots" can pump and dump the coin. This creates a stable, professional chart that attracts **Institutional Investors.**
