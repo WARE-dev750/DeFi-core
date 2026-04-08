@@ -1,4 +1,4 @@
-NOFACE: The Raw Truth 
+The Raw Truth 
 
 I am writing this file with 100% transparency. No PR speak, no corporate fluff. Just a direct, honest look at what this project is and where it’s going.
 
