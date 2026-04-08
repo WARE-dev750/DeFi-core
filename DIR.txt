@@ -1,42 +1,60 @@
-NOFACE-Protocol/
+DeFi-core/
 ├── circuits/               # MODULAR ZK-STACK (Noir)
 │   ├── src/
-│   │   ├── kernel/         # THE STATE KERNEL: Validates SMT & Nullifiers ONLY
-│   │   │   └── main.nr     
-│   │   ├── apps/           # TRANSACTION LOGIC: Swap/Spend (Decoupled from Kernel)
-│   │   │   ├── swap.nr     
-│   │   │   └── transfer.nr 
-│   │   └── middleware/     # COMPLIANCE: Proof-of-Inclusion (Async from Core)
-│   │       └── clean_set.nr
-│   ├── Nargo.toml          # UltraHonk + Recursion (Aggregates Apps into Kernel)
-│   └── tests/              # Extensive Circuit Unit Tests (Required for Pass)
-├── contracts/              # THE MINIMALIST ENGINE
-│   ├── src/
-│   │   ├── core/
-│   │   │   ├── NofaceVault.sol   # Pure Storage: Root history & Nullifier bitmaps
-│   │   │   └── Verifier.sol      # Auto-generated UltraHonk Verifier
-│   │   ├── sequencer/      # THE INTENT LAYER
-│   │   │   ├── IntentPool.sol    # [FIX 3] Collects user intents, prevents on-chain reverts
-│   │   │   └── BatchManager.sol  # Handles the atomic transition of the State Tree
-│   │   ├── hooks/          # UNISWAP V4 INTEGRATION
-│   │   │   ├── NofaceHook.sol    # TSTORE-based shielded swaps
-│   │   │   └── PrivacyOracle.sol # Feeds compliance/policy updates to the hook
-│   │   └── libraries/
-│   │       └── IncrementalTree.sol # Gas-optimized Merkle Tree (32 levels)
-│   └── test/               # Foundry + Halmos (Formal verification of state logic)
-├── infra/                  # THE COORDINATION LAYER
-│   ├── solver/             # [FIX 3] Replaces "Relayer": Matches Intents to avoid collisions
-│   │   └── bundle-builder/ 
-│   ├── indexer/            # [FIX 2] PRACTICAL PRIVACY
-│   │   └── ohttp-gateway/  # Oblivious HTTP for note discovery (FHE is too slow, move on)
-│   └── prover/             
-│       └── coordination/   # Decentralized Proof Generation (Succinct/Gevulot)
-├── sdk/                    # THE INTEGRATION LAYER
-│   ├── intent-gen/         # Constructs the ZK-Intents + Ephemeral Keys
-│   ├── discovery/          # OHTTP-based note scanning
-│   └── index.ts            
-├── specs/                  # THE BIBLE
-│   ├── state-machine.tla   # TLA+ model of the Sequencer (Ensures no deadlocks)
-│   └── compliance.md       # ASP standards for Clean Set inclusion
-└── README.md
-
+│   │   ├── kernel/         # STATE KERNEL: Validates Merkle inclusion & Nullifiers
+│   │   │   └── main.nr     # 🔨 NEXT — written from scratch, referenced from Privacy Pools
+│   │   ├── apps/           # TRANSACTION LOGIC: Decoupled from Kernel
+│   │   │   ├── swap.nr     # ⏳ Phase 2
+│   │   │   └── transfer.nr # ⏳ Phase 2
+│   │   └── middleware/     # COMPLIANCE
+│   │       └── clean_set.nr # ⏳ Phase 2 — Privacy Pools ASP logic
+│   ├── Nargo.toml          # 🔨 Needs configuration
+│   └── tests/              # ⏳ After main.nr
+│
+├── contracts/
+│   └── src/
+│       ├── core/
+│       │   ├── NofaceVault.sol    # ✅ Complete — uses LeanIMT via npm
+│       │   └── Verifier.sol       # ⏳ Auto-generated from main.nr
+│       ├── sequencer/
+│       │   ├── IntentPool.sol     # ⏳ Phase 2 — fork CoW Protocol
+│       │   └── BatchManager.sol   # ⏳ Phase 2 — fork CoW Protocol
+│       ├── hooks/
+│       │   ├── NofaceHook.sol     # ⏳ Phase 2 — fork Uniswap v4 periphery
+│       │   └── PrivacyOracle.sol  # ⏳ Phase 2
+│       └── governance/
+│           └── NofaceToken.sol    # ⏳ Phase 3 — fork Solady ERC20
+│
+│   NOTE: IncrementalTree.sol REMOVED
+│         Replaced by @zk-kit/lean-imt.sol (npm)
+│         Ethereum Foundation audited, better than custom implementation
+│
+├── infra/                  # ⏳ Phase 2
+│   ├── solver/
+│   │   └── bundle-builder/
+│   ├── indexer/
+│   │   └── ohttp-gateway/
+│   └── prover/
+│       └── coordination/
+│
+├── sdk/
+│   ├── note.ts             # ⏳ After main.nr — note creation & storage
+│   ├── deposit.ts          # ⏳ After note.ts
+│   ├── withdraw.ts         # ⏳ After deposit.ts — generates proofs
+│   ├── audit.ts            # ⏳ Phase 2 — tax proof generation
+│   └── index.ts            # ⏳ After all SDK modules
+│
+├── specs/
+│   ├── state-machine.tla   # ⏳ Phase 2 — TLA+ formal verification
+│   └── compliance.md       # 🔨 Needs content
+│
+├── test/
+│   └── NofaceVault.t.sol   # ✅ 4/4 passing
+│
+├── FORK⭐.md               # ✅ Strategy correct
+├── DIR.txt                 # ✅ This file (updated)
+├── README.md               # ✅ Complete
+├── SECURITY.md             # ✅ Complete
+├── TOKENOMICS.md           # ✅ Complete
+├── foundry.toml            # ✅ Complete
+└── Nargo.toml              # 🔨 Needs configuration
