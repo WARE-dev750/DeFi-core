@@ -1,0 +1,6 @@
+[package]
+name = "noface_kernel"
+type = "bin"
+authors = ["NOFACE Protocol"]
+
+[dependencies]
