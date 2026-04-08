@@ -189,14 +189,14 @@ Every dependency is forked from battle-tested, multiply-audited production code.
 
 ## 11. Roadmap
 
-### Phase 1 — Beta (Now → Month 12)
+### Phase 1 — Beta 
 - USDC shielded vault on Arbitrum Sepolia testnet
 - ZK proof generation and verification
 - Basic shield and unshield functionality
 - First security audit
 - ETHGlobal / Ethereum Foundation grant application
 
-### Phase 2 — V1 Mainnet (Month 12 → 24)
+### Phase 2 — V1 Mainnet 
 - Arbitrum mainnet deployment
 - Private swaps via Uniswap v4
 - $NOFACE token launch via LBP
@@ -204,18 +204,18 @@ Every dependency is forked from battle-tested, multiply-audited production code.
 - WETH support added
 - $1M TVL cap during gated beta
 
-### Phase 3 — V2 Expansion (Month 24 → 36)
+### Phase 3 — V2 Expansion 
 - Multi-asset vault (WBTC / tBTC added)
 - Private economy launch (betting, tournaments, community events)
 - Multi-chain deployment (Base, Optimism)
 - Second audit complete
-- $100M TVL target
+- $100M TVL target 
 
-### Phase 4 — V3 Maturity (Month 36 → 60)
+### Phase 4 — V3 Maturity 
 - Cross-chain asset support via Chainlink CCIP
 - Full DAO governance transition
 - Permissionless vault (any ERC-20)
-- $1B TVL target
+- $1B TVL target (Ambitiouse right?)
 - Protocol legacy as standard privacy primitive for Ethereum
 
 ---
