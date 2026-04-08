@@ -52,14 +52,55 @@ Withdraw to any fresh wallet at any time. Zero cryptographic connection between 
 
 NOFACE accepts any asset. Not just ERC-20 tokens.
 
-| Asset | Mechanism | Status |
-| :--- | :--- | :--- |
-| USDC / USDT / DAI | Native ERC-20 | Beta |
-| ETH / WETH | Native + auto-wrap | V1 |
-| WBTC / tBTC | Battle-tested BTC wrappers | V2 |
-| Any ERC-20 | Permissionless vault | V2 |
-| Cross-chain assets | Chainlink CCIP | V3 |
-
+|
+ Asset 
+|
+ Mechanism 
+|
+ Status 
+|
+|
+:---
+|
+:---
+|
+:---
+|
+|
+ USDC / USDT / DAI 
+|
+ Native ERC-20 
+|
+ Beta 
+|
+|
+ ETH / WETH 
+|
+ Native + auto-wrap 
+|
+ V1 
+|
+|
+ WBTC / tBTC 
+|
+ Battle-tested BTC wrappers 
+|
+ V2 
+|
+|
+ Any ERC-20 
+|
+ Permissionless vault 
+|
+ V2 
+|
+|
+ Cross-chain assets 
+|
+ Chainlink CCIP 
+|
+ V3 
+|
 Every asset sits in a hardened smart contract forked from the most audited code in DeFi. Your BTC is secured by tBTC's battle-tested contracts. Your ETH by OpenZeppelin. Your position by mathematics.
 
 ---
@@ -109,3 +150,150 @@ $NOFACE is not required to use the protocol. It is the engine that captures prot
 **How Value Accrues**
 
 Every transaction through NOFACE generates a 0.3% fee split three ways:
+
+0.3% protocol fee ├── 0.1% → $NOFACE stakers (real yield paid in USDC) ├── 0.1% → Buyback and Burn (supply decreases permanently) └── 0.1% → Protocol Treasury (audits, engineering, legal)
+
+
+**Who Needs $NOFACE**
+
+| Actor | Why They Need It |
+| :--- | :--- |
+| Solvers | Must stake to access the intent pool |
+| Stakers | Lock to earn real yield from protocol fees |
+| Community | Required currency for all ecosystem events |
+| Governance | Voting power over fee structure and protocol upgrades |
+
+**Token Allocation**
+
+| Category | Allocation | Vesting |
+| :--- | :--- | :--- |
+| Liquidity Mining | 40% | 5-Year Linear |
+| Protocol Treasury | 20% | 3-Year Linear |
+| Founders & Team | 15% | 1-Year Cliff, 4-Year Linear |
+| Private Investors | 15% | 6-Month Cliff, 2-Year Linear |
+| Community Airdrop | 10% | 100% Unlocked at Launch |
+
+---
+
+## 8. The Flywheel
+
+More users enter the private economy │ ▼ More volume generates more fees │ ▼ More fees fund buyback and burn │ ▼ $NOFACE supply decreases │ ▼ Solvers compete harder to stake │ ▼ Better execution attracts more users │ ▼ More users enter the private economy ◄──┘
+
+
+Each loop makes the next loop stronger.
+
+---
+
+## 9. Technical Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| ZK Circuits | Noir — UltraHonk proof system |
+| On-Chain Verifier | Barretenberg — auto-generated `HonkVerifier.sol` from real VK |
+| Smart Contracts | Solidity 0.8.27 — Foundry |
+| Merkle Tree | zk-kit LeanIMT — Poseidon2, Ethereum Foundation audited |
+| BTC Layer | tBTC — Threshold Network, decentralized BTC wrapper |
+| Hooks | Uniswap v4 — TSTORE-based shielded swaps |
+| Intent Settlement | CoW Protocol — MEV-resistant solver architecture |
+| Metadata Privacy | OHTTP — Oblivious HTTP, hides user IP during note discovery |
+| Proof Generation | Succinct / Gevulot — Decentralized prover networks |
+| Cross-Chain | Chainlink CCIP — V3 cross-chain asset support |
+
+---
+
+## 10. Dependency Map
+
+| Component | Source | Purpose |
+| :--- | :--- | :--- |
+| LeanIMT | zk-kit — Ethereum Foundation | Commitment Merkle tree |
+| HonkVerifier | Barretenberg — Aztec | UltraHonk proof verification |
+| ReentrancyGuard / Ownable | OpenZeppelin | Vault security primitives |
+| Uniswap v4 Hook | Uniswap Periphery | Private swap execution |
+| Intent Settlement | CoW Protocol | MEV-resistant execution |
+| BTC Wrapper | tBTC — Threshold Network | Decentralized BTC support |
+| Token Contract | Solady ERC-20 | Gas-optimized $NOFACE |
+| OHTTP Gateway | Cloudflare / IETF | Metadata privacy |
+
+Every dependency is forked from battle-tested, multiply-audited production code. No component was written from scratch when a proven alternative existed.
+
+---
+
+## 11. Roadmap
+
+### Phase 1 — Beta
+- USDC shielded vault on Arbitrum Sepolia testnet
+- Real UltraHonk ZK proof generation and on-chain verification ✅
+- Basic shield and unshield functionality
+- First security audit
+- ETHGlobal / Ethereum Foundation grant application
+
+### Phase 2 — V1 Mainnet
+- Arbitrum mainnet deployment
+- Private swaps via Uniswap v4
+- $NOFACE token launch via LBP
+- Solver network live
+- WETH support added
+- $1M TVL cap during gated beta
+
+### Phase 3 — V2 Expansion
+- Multi-asset vault (WBTC / tBTC added)
+- Private economy launch (betting, tournaments, community events)
+- Multi-chain deployment (Base, Optimism)
+- Second audit complete
+- $100M TVL target
+
+### Phase 4 — V3 Maturity
+- Cross-chain asset support via Chainlink CCIP
+- Full DAO governance transition
+- Permissionless vault (any ERC-20)
+- $1B TVL target
+- Protocol legacy as standard privacy primitive for Ethereum
+
+---
+
+## 12. Security
+
+NOFACE treats security as an existential requirement, not a feature.
+
+**System Invariants**
+- **Solvency:** Total vault assets always equal sum of unspent commitments
+- **Nullifier Uniqueness:** Every nullifier can only be spent once. Ever.
+- **Non-Custodial:** User private keys never leave their device
+
+**Audit Requirements Before Mainnet**
+1. Crowdsourced bug bounty via Code4rena
+2. Formal verification of all ZK circuits
+3. Tier-1 institutional audit (OpenZeppelin / Spearbit / Trail of Bits)
+4. Public Immunefi bounty up to $5,000,000 for critical vulnerabilities
+
+**Guardrail Phase**
+
+Administrative powers are held by a 3-of-5 Security Multisig until all audits complete. 48-hour timelock on all non-emergency upgrades. Emergency pause covers deposits only — withdrawals always remain open.
+
+---
+
+## 13. Current Build Status
+
+| Component | Status |
+| :--- | :--- |
+| LeanIMT + Poseidon2 | ✅ Complete — audited zk-kit |
+| `NofaceVault.sol` | ✅ Complete — 8/8 tests passing |
+| `main.nr` ZK Kernel | ✅ Complete — real UltraHonk circuit |
+| `HonkVerifier.sol` | ✅ Complete — generated from real verification key |
+| Hash alignment (Poseidon2 ↔ circuit) | 🔴 In progress |
+| Deploy script | 🟡 In progress |
+| End-to-end proof integration test | 🟡 In progress |
+| `swap.nr` / `transfer.nr` | ⏳ Pending kernel finalization |
+| `IntentPool.sol` | ⏳ Pending vault |
+| `BatchManager.sol` | ⏳ Pending vault |
+| `NofaceHook.sol` | ⏳ Pending V1 |
+| $NOFACE Token | ⏳ Pending mainnet |
+| SDK | ⏳ Pending contracts |
+
+---
+
+*NOFACE is currently in the Guardrail Phase. Administrative powers are held by a 3-of-5 Security Multisig until ZK circuits complete a Tier-1 audit. Do not deposit funds you cannot afford to lose during the testnet phase.*
+
+*Built by a 15-year-old. Seriously.*
+
+<img width="964" height="642" alt="image" src="https://github.com/user-attachments/assets/bb1d444a-9ad2-4c0a-9b6d-4bb7c4ac92c6" />
