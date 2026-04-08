@@ -8,7 +8,7 @@ The end goal of NOFACE is to build a complete, private, anonymous economy. I wan
 But I am also a realist. For right now, I am laser-focused on one thing: getting the foundational smart contracts bulletproof and ready for launch.
 
 The Reality of the Grind
-Right now, I am building this solo. I don't have a massive dev team; I just have the commitment and the hours I put into it. 
+Right now, I am building this solo. I don't have a massive dev team, I just have the commitment and the hours I put into it. 
 
 My immediate goal is to successfully launch the V1 beta, prove the concept, and use the generated protocol fees (or early VC backing) for one specific purpose: Security Audits. I will not push V2 or V3 to the public until this code is audited to its absolute maximum potential.
 
@@ -21,4 +21,4 @@ When people hear "privacy protocol," their first worry is that it will be used b
 Here is my solution: By V2/V3, once the community and funding are there, NOFACE will integrate strict, smart-contract-level blacklisting for high-risk and malicious wallets. If an address is flagged for illegal activity, the math will simply reject them. They will not be able to trade their crypto into the NOFACE economy.
 
 But here is the line I will not cross: There will be zero centralization. 
-I will never build an "admin key" that can freeze a user's wallet. Nobody's assets will ever be trapped or locked by a central authority. We will block bad actors from entering the system at the smart-contract level, but we will never compromise the decentralized sovereignty of the protocol.
+I will never build an "admin key" that can freeze a user's wallet. Nobody's assets will ever be trapped or locked by a central authority. We will block bad actors from entering the system at the smart-contract level, but we (OR I, somtimes I use we because im hoping I can get a Team soon enough.) will never compromise the decentralized sovereignty of the protocol.
