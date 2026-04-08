@@ -245,9 +245,9 @@ Administrative powers are held by a 3-of-5 Security Multisig until all audits co
 | Component | Status |
 | :--- | :--- |
 | LeanIMT + Poseidon2	| ✅ Complete — audited zk-kit|
-| NofaceVault.sol	| ✅ Complete — 4/4 tests passing |
-| main.nr ZK Kernel	| 🔨 Next |
-| Verifier.sol	| ⏳ Generated from main.nr |
+| NofaceVault.sol	| ✅ Complete — 7/7 tests passing |
+| main.nr ZK Kernel	| ✅ Complete — compiles clean |
+| Verifier.sol	| ✅ Complete — HonkVerifier.sol live |
 | swap.nr / transfer.nr	|⏳ Pending kernel |
 | IntentPool.sol	|⏳ Pending vault |
 | BatchManager.sol	|⏳ Pending vault |
