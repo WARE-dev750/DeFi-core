@@ -22,3 +22,9 @@ Here is my solution: By V2/V3, once the community and funding are there, NOFACE 
 
 But here is the line I will not cross: There will be zero centralization. 
 I will never build an "admin key" that can freeze a user's wallet. Nobody's assets will ever be trapped or locked by a central authority. We will block bad actors from entering the system at the smart-contract level, but we (OR I, somtimes I use we because im hoping I can get a Team soon enough.) will never compromise the decentralized sovereignty of the protocol.
+
+
+
+Im not sure how things will go since thigns change as you learn more the more you work. there are some flaws in my stuff. I understand, but as a solo it can be really hard to easily find that flow. Also, I understand, when alot of you look at my code or .MD files you see mistakes I write in there and things that I unknowlingly claim is right. I Apoligize for that. I am trying my best and I hope to make this project a blast.
+
+lastly: I dont know if I mentioned this clearly, but ill mentioned this again. alot of my .md files where made by AI. I dont not want you guys to suffer reading bad littercy. It also makes my workflow alot more smoother.
