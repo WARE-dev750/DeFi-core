@@ -263,6 +263,4 @@ Administrative powers are held by a 3-of-5 Security Multisig until all audits co
 
 ---
 
-*NOFACE is currently in the Guardrail Phase. Administrative powers are held by a 3-of-5 Security Multisig until ZK circuits complete a Tier-1 audit. Do not deposit funds you cannot afford to lose during the testnet phase.*
-
 *Built by a 15-year-old. Seriously.*
