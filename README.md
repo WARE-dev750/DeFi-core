@@ -1,5 +1,7 @@
 ## 1. What Is NOFACE?
 
+NOFACE is licensed under the AGPL-3.0 license.
+
 NOFACE is a private financial ecosystem built on Ethereum Layer-2.
 
 Every major DeFi protocol today has one fatal flaw. Everything is public. Your wallet address, your trade size, your strategy, your identity — permanently visible to every bot, competitor, and adversary on the planet.
