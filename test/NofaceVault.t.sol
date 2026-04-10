@@ -128,8 +128,9 @@ contract NofaceVaultTest is Test {
         uint256 fee       = (SMALL * vault.FEE_BPS()) / 10_000;
         vm.prank(bob);
         vault.withdraw(bytes("proof"), nullifier, root, bob, SMALL);
-        // Fee goes to owner() (test contract), vault should be empty
-        assertEq(token.balanceOf(address(vault)), 0);
-        assertEq(token.balanceOf(address(this)), fee);
+        // Pull pattern: fees accumulate in vault, NOT pushed to owner.
+        // Vault balance should equal the accumulated fee.
+        assertEq(token.balanceOf(address(vault)), fee);
+        assertEq(vault.accumulatedFees(), fee);
     }
 }
