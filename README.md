@@ -1,10 +1,3 @@
-# NOFACE Protocol ($NOFACE)
-
-> **The Private Universal Financial Ecosystem.**
-> *Null-Output Financial Anonymity & Cipher Engine.*
-
----
-
 ## 1. What Is NOFACE?
 
 NOFACE is a private financial ecosystem built on Ethereum Layer-2.
@@ -52,55 +45,14 @@ Withdraw to any fresh wallet at any time. Zero cryptographic connection between 
 
 NOFACE accepts any asset. Not just ERC-20 tokens.
 
-|
- Asset 
-|
- Mechanism 
-|
- Status 
-|
-|
-:---
-|
-:---
-|
-:---
-|
-|
- USDC / USDT / DAI 
-|
- Native ERC-20 
-|
- Beta 
-|
-|
- ETH / WETH 
-|
- Native + auto-wrap 
-|
- V1 
-|
-|
- WBTC / tBTC 
-|
- Battle-tested BTC wrappers 
-|
- V2 
-|
-|
- Any ERC-20 
-|
- Permissionless vault 
-|
- V2 
-|
-|
- Cross-chain assets 
-|
- Chainlink CCIP 
-|
- V3 
-|
+| Asset | Mechanism | Status |
+| :--- | :--- | :--- |
+| USDC / USDT / DAI | Native ERC-20 | Beta |
+| ETH / WETH | Native + auto-wrap | V1 |
+| WBTC / tBTC | Battle-tested BTC wrappers | V2 |
+| Any ERC-20 | Permissionless vault | V2 |
+| Cross-chain assets | Chainlink CCIP | V3 |
+
 Every asset sits in a hardened smart contract forked from the most audited code in DeFi. Your BTC is secured by tBTC's battle-tested contracts. Your ETH by OpenZeppelin. Your position by mathematics.
 
 ---
@@ -116,7 +68,7 @@ A Noir-based Zero-Knowledge circuit that validates every state transition. Built
 The circuit is compiled to a real verification key. `HonkVerifier.sol` is generated directly from that key by Barretenberg. There is no mock. There is no placeholder. The cryptography is live.
 
 ### Pillar C — The Intent Layer (Gasless Execution)
-Users never submit transactions directly. They sign a gasless ZK-Intent. Professional Solvers pick up the intent, pay the gas, execute the trade, and get reimbursed automatically. Users need zero ETH. Zero $NOFACE. Just a signature.
+Users never submit transactions directly. They sign a gasless ZK-Intent authorizing a specific execution and relayer fee. Professional Solvers pick up the intent, pay the gas, execute the trade, and get reimbursed automatically. Users need zero ETH. Zero $NOFACE. Just a signature.
 
 Solvers must stake $NOFACE to access the intent pool. If they front-run or manipulate — their stake gets slashed. The math enforces honesty.
 
@@ -151,8 +103,10 @@ $NOFACE is not required to use the protocol. It is the engine that captures prot
 
 Every transaction through NOFACE generates a 0.3% fee split three ways:
 
-0.3% protocol fee ├── 0.1% → $NOFACE stakers (real yield paid in USDC) ├── 0.1% → Buyback and Burn (supply decreases permanently) └── 0.1% → Protocol Treasury (audits, engineering, legal)
-
+0.3% protocol fee
+├── 0.1% → $NOFACE stakers (real yield paid in USDC)
+├── 0.1% → Buyback and Burn (supply decreases permanently)
+└── 0.1% → Protocol Treasury (audits, engineering, legal)
 
 **Who Needs $NOFACE**
 
@@ -177,8 +131,25 @@ Every transaction through NOFACE generates a 0.3% fee split three ways:
 
 ## 8. The Flywheel
 
-More users enter the private economy │ ▼ More volume generates more fees │ ▼ More fees fund buyback and burn │ ▼ $NOFACE supply decreases │ ▼ Solvers compete harder to stake │ ▼ Better execution attracts more users │ ▼ More users enter the private economy ◄──┘
-
+More users enter the private economy 
+│
+▼
+More volume generates more fees 
+│
+▼
+More fees fund buyback and burn 
+│
+▼
+$NOFACE supply decreases 
+│
+▼
+Solvers compete harder to stake 
+│
+▼
+Better execution attracts more users 
+│
+▼
+More users enter the private economy ◄──┘
 
 Each loop makes the next loop stronger.
 
@@ -191,7 +162,7 @@ Each loop makes the next loop stronger.
 | ZK Circuits | Noir — UltraHonk proof system |
 | On-Chain Verifier | Barretenberg — auto-generated `HonkVerifier.sol` from real VK |
 | Smart Contracts | Solidity 0.8.27 — Foundry |
-| Merkle Tree | zk-kit LeanIMT — Poseidon2, Ethereum Foundation audited |
+| Merkle Tree | Fixed-Depth IncrementalTree (Tornado Cash Fork) — Native Poseidon2 Hash |
 | BTC Layer | tBTC — Threshold Network, decentralized BTC wrapper |
 | Hooks | Uniswap v4 — TSTORE-based shielded swaps |
 | Intent Settlement | CoW Protocol — MEV-resistant solver architecture |
@@ -205,7 +176,7 @@ Each loop makes the next loop stronger.
 
 | Component | Source | Purpose |
 | :--- | :--- | :--- |
-| LeanIMT | zk-kit — Ethereum Foundation | Commitment Merkle tree |
+| MerkleTreeWithHistory | Tornado Cash / Aztec Protocol | Fixed-Depth Commitment Merkle Tree |
 | HonkVerifier | Barretenberg — Aztec | UltraHonk proof verification |
 | ReentrancyGuard / Ownable | OpenZeppelin | Vault security primitives |
 | Uniswap v4 Hook | Uniswap Periphery | Private swap execution |
@@ -276,12 +247,12 @@ Administrative powers are held by a 3-of-5 Security Multisig until all audits co
 
 | Component | Status |
 | :--- | :--- |
-| LeanIMT + Poseidon2 | ✅ Complete — audited zk-kit |
+| Fixed-Depth MerkleTree + Poseidon2 | ✅ Complete — Native BB Translation |
 | `NofaceVault.sol` | ✅ Complete — 8/8 tests passing |
 | `main.nr` ZK Kernel | ✅ Complete — real UltraHonk circuit |
 | `HonkVerifier.sol` | ✅ Complete — generated from real verification key |
-| Hash alignment (Poseidon2 ↔ circuit) | 🔴 In progress |
-| Deploy script | 🟡 In progress |
+| Hash alignment (Poseidon2 ↔ circuit) | ✅ Complete — Test vectors passing |
+| Deploy script | ✅ Complete — Uses real HonkVerifier |
 | End-to-end proof integration test | 🟡 In progress |
 | `swap.nr` / `transfer.nr` | ⏳ Pending kernel finalization |
 | `IntentPool.sol` | ⏳ Pending vault |
@@ -295,5 +266,3 @@ Administrative powers are held by a 3-of-5 Security Multisig until all audits co
 *NOFACE is currently in the Guardrail Phase. Administrative powers are held by a 3-of-5 Security Multisig until ZK circuits complete a Tier-1 audit. Do not deposit funds you cannot afford to lose during the testnet phase.*
 
 *Built by a 15-year-old. Seriously.*
-
-<img width="964" height="642" alt="image" src="https://github.com/user-attachments/assets/bb1d444a-9ad2-4c0a-9b6d-4bb7c4ac92c6" />
