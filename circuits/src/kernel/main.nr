@@ -13,14 +13,11 @@ fn main(
     let d10000 = denomination == 10_000_000_000;
     assert(d100 | d1000 | d10000, "Invalid denomination");
 
-    // commitment = Poseidon2([secret, nullifier, denomination, 0])
     let commitment = std::hash::poseidon2_permutation([secret, nullifier, denomination, 0], 4)[0];
-
-    // nullifier_hash binds nullifier to commitment - prevents cross-denomination reuse
     let computed_nullifier_hash = std::hash::poseidon2_permutation([nullifier, commitment, 0, 0], 4)[0];
+
     assert(computed_nullifier_hash == nullifier_hash, "Invalid nullifier");
 
-    // merkle inclusion proof
     let computed_root = compute_merkle_root(commitment, path, indices);
     assert(computed_root == root, "Invalid merkle root");
 
@@ -41,6 +38,29 @@ fn compute_merkle_root(leaf: Field, path: [Field; 20], indices: [bool; 20]) -> F
 }
 
 #[test]
+fn test_print_witness_values() {
+    let secret: Field = 1;
+    let nullifier: Field = 2;
+    let denomination: Field = 100_000_000;
+
+    let commitment = std::hash::poseidon2_permutation([secret, nullifier, denomination, 0], 4)[0];
+    let nullifier_hash = std::hash::poseidon2_permutation([nullifier, commitment, 0, 0], 4)[0];
+
+    // simulate 20-level path with all zero siblings
+    let mut root = commitment;
+    for _i in 0..20 {
+        root = std::hash::poseidon2_permutation([root, 0, 0, 0], 4)[0];
+    }
+
+    println(f"commitment    = {commitment}");
+    println(f"nullifier_hash = {nullifier_hash}");
+    println(f"root           = {root}");
+
+    assert(commitment != 0);
+    assert(nullifier_hash != 0);
+}
+
+#[test]
 fn test_nullifier_binding() {
     let secret: Field = 1;
     let nullifier: Field = 2;
@@ -51,7 +71,6 @@ fn test_nullifier_binding() {
 
     assert(commitment != 0);
     assert(nh != 0);
-    // different inputs must produce different outputs
     assert(commitment != nh);
 }
 
