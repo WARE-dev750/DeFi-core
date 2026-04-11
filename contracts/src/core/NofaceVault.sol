@@ -53,6 +53,8 @@ contract NofaceVault is MerkleTreeWithHistory, Ownable {
     error InvalidRoot();
     error NullifierAlreadySpent();
     error ProofVerificationFailed();
+    error UnauthorizedRelayer();
+    error FeeTooHigh();
 
     // Tree depth 20 = 2^20 = 1,048,576 max deposits. Same as Tornado Cash.
     constructor(address _token, address _verifier)
@@ -82,7 +84,9 @@ contract NofaceVault is MerkleTreeWithHistory, Ownable {
         bytes32 nullifierHash,
         bytes32 root,
         address recipient,
-        uint256 denomination
+        uint256 denomination,
+        address relayer,
+        uint256 fee
     ) external nonReentrant {
         if (!isKnownRoot(uint256(root)))   revert InvalidRoot();
         if (nullifierSpent[nullifierHash]) revert NullifierAlreadySpent();
@@ -90,15 +94,26 @@ contract NofaceVault is MerkleTreeWithHistory, Ownable {
             denomination != DENOM_MEDIUM &&
             denomination != DENOM_LARGE)   revert InvalidDenomination();
 
-        bytes32[] memory publicInputs = new bytes32[](4);
+        // If relayer is specified, only that address may submit this proof.
+        // relayer == address(0) means permissionless — anyone can relay.
+        if (relayer != address(0) && msg.sender != relayer) revert UnauthorizedRelayer();
+
+        // Guard against fee consuming entire denomination before math below.
+        uint256 protocolFee = (denomination * FEE_BPS) / 10_000;
+        if (fee + protocolFee > denomination) revert FeeTooHigh();
+
+        // 6 public inputs — order must match circuit main.nr exactly:
+        // nullifier_hash, root, recipient, denomination, relayer, fee
+        bytes32[] memory publicInputs = new bytes32[](6);
         publicInputs[0] = nullifierHash;
         publicInputs[1] = root;
         publicInputs[2] = bytes32(uint256(uint160(recipient)));
         publicInputs[3] = bytes32(denomination);
+        publicInputs[4] = bytes32(uint256(uint160(relayer)));
+        publicInputs[5] = bytes32(fee);
 
-        // HonkVerifier reverts on invalid proof (SumcheckFailed etc.)
-        // rather than returning false. Wrap in try/catch so the vault
-        // always surfaces ProofVerificationFailed to the caller.
+        // HonkVerifier reverts on invalid proof rather than returning false.
+        // Wrap in try/catch so vault always surfaces its own clean error.
         bool ok;
         try IHonkVerifier(verifier).verify(proof, publicInputs) returns (bool result) {
             ok = result;
@@ -107,17 +122,20 @@ contract NofaceVault is MerkleTreeWithHistory, Ownable {
         }
         if (!ok) revert ProofVerificationFailed();
 
-        // CEI: mark spent before transfer
+        // CEI: mark spent before any transfers.
         nullifierSpent[nullifierHash] = true;
 
-        uint256 fee    = (denomination * FEE_BPS) / 10_000;
-        uint256 payout = denomination - fee;
+        uint256 payout = denomination - protocolFee - fee;
 
-        // Pull pattern: accumulate fee, do NOT push to owner here.
-        // If owner is blacklisted, withdrawals still succeed.
-        accumulatedFees += fee;
+        // Pull pattern: accumulate protocol fee, do NOT push to owner here.
+        accumulatedFees += protocolFee;
 
+        // Pay solver first, then recipient.
+        if (fee > 0 && relayer != address(0)) {
+            token.safeTransfer(relayer, fee);
+        }
         token.safeTransfer(recipient, payout);
+
         emit Withdrawal(recipient, nullifierHash, payout);
     }
 

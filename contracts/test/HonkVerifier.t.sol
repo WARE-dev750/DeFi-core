@@ -1,47 +1,72 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.21;
+pragma solidity ^0.8.23;
 
 import "forge-std/Test.sol";
 import "../src/core/HonkVerifier.sol";
 
 contract HonkVerifierTest is Test {
-
     HonkVerifier verifier;
+
+    // 6 public inputs matching Prover.toml:
+    // secret=1, nullifier=2, denomination=100_000_000, relayer=0, fee=0
+    bytes32 constant NULLIFIER_HASH =
+        0x066f887cb761c6616ea5a9775bab244d526ae04e244e1b0291cd86c1fbda0330;
+    bytes32 constant ROOT =
+        0x221b3171ae30f12ee672c13863c7bfea8a11ba43c27bba43b1887d5412e7f0fd;
+    bytes32 constant RECIPIENT    = bytes32(uint256(1));
+    bytes32 constant DENOMINATION = bytes32(uint256(100_000_000));
+    bytes32 constant RELAYER      = bytes32(uint256(0));
+    bytes32 constant FEE          = bytes32(uint256(0));
+
+    string constant PROOF_PATH =
+        "/home/robelsocial750/DeFi-core/circuits/target/proof/proof/proof";
 
     function setUp() public {
         verifier = new HonkVerifier();
     }
 
-    /// @notice Real UltraHonk proof must pass on-chain verification
-    function test_realProofVerifies() public view {
-        bytes memory proof = vm.readFileBinary(
-            "/home/robelsocial750/DeFi-core/circuits/target/proof/proof"
-        );
-
-        bytes32[] memory pub = new bytes32[](4);
-        pub[0] = bytes32(0x066f887cb761c6616ea5a9775bab244d526ae04e244e1b0291cd86c1fbda0330);
-        pub[1] = bytes32(0x221b3171ae30f12ee672c13863c7bfea8a11ba43c27bba43b1887d5412e7f0fd);
-        pub[2] = bytes32(uint256(1));
-        pub[3] = bytes32(uint256(100_000_000));
-
-        assertTrue(verifier.verify(proof, pub), "valid proof rejected");
+    function _buildPublicInputs() internal pure returns (bytes32[] memory) {
+        bytes32[] memory pi = new bytes32[](6);
+        pi[0] = NULLIFIER_HASH;
+        pi[1] = ROOT;
+        pi[2] = RECIPIENT;
+        pi[3] = DENOMINATION;
+        pi[4] = RELAYER;
+        pi[5] = FEE;
+        return pi;
     }
 
-    /// @notice Corrupted public inputs must cause verifier to revert
-    /// The HonkVerifier reverts (SumcheckFailed) rather than returning false
+    function test_realProofVerifies() public {
+        bytes memory proof = vm.readFileBinary(PROOF_PATH);
+        bytes32[] memory pi = _buildPublicInputs();
+        bool ok = verifier.verify(proof, pi);
+        assertTrue(ok, "Real proof must verify");
+    }
+
     function test_wrongPublicInputReverts() public {
-        bytes memory proof = vm.readFileBinary(
-            "/home/robelsocial750/DeFi-core/circuits/target/proof/proof"
-        );
-
-        bytes32[] memory pub = new bytes32[](4);
-        pub[0] = bytes32(uint256(0xdeadbeef)); // corrupted nullifier_hash
-        pub[1] = bytes32(0x221b3171ae30f12ee672c13863c7bfea8a11ba43c27bba43b1887d5412e7f0fd);
-        pub[2] = bytes32(uint256(1));
-        pub[3] = bytes32(uint256(100_000_000));
-
-        // verifier reverts on invalid proof — catch it
+        bytes memory proof = vm.readFileBinary(PROOF_PATH);
+        bytes32[] memory pi = _buildPublicInputs();
+        // Corrupt nullifier_hash
+        pi[0] = bytes32(uint256(pi[0]) ^ 1);
         vm.expectRevert();
-        verifier.verify(proof, pub);
+        verifier.verify(proof, pi);
+    }
+
+    function test_wrongRelayerReverts() public {
+        bytes memory proof = vm.readFileBinary(PROOF_PATH);
+        bytes32[] memory pi = _buildPublicInputs();
+        // Swap relayer to non-zero — proof was generated with relayer=0
+        pi[4] = bytes32(uint256(uint160(address(0xDEAD))));
+        vm.expectRevert();
+        verifier.verify(proof, pi);
+    }
+
+    function test_wrongFeeReverts() public {
+        bytes memory proof = vm.readFileBinary(PROOF_PATH);
+        bytes32[] memory pi = _buildPublicInputs();
+        // Change fee from 0 to 1 — proof was generated with fee=0
+        pi[5] = bytes32(uint256(1));
+        vm.expectRevert();
+        verifier.verify(proof, pi);
     }
 }
