@@ -1,30 +1,28 @@
-The Raw Truth 
+The Raw Truth
 
-I am writing this file with 100% transparency. No PR speak, no corporate fluff. Just a direct, honest look at what this project is and where it’s going.
+I am writing this file with complete honesty. No marketing talk, no corporate fluff. Just a straightforward look at what this project is and where it’s headed.
 
-What is NOFACE?
-The end goal of NOFACE is to build a complete, private, anonymous economy. I want investors and everyday users to be able to participate in betting, P2E games, and interactive yield events without doxxing their entire financial history to the blockchain. 
+What is NOFACE?  
+The main goal of NOFACE is to create a full, private, anonymous economy. I want both investors and everyday users to take part in betting, play-to-earn games, and interactive yield events without having to reveal their entire financial history on the blockchain.
 
-But I am also a realist. For right now, I am laser-focused on one thing: getting the foundational smart contracts bulletproof and ready for launch.
+But I also recognize reality. Right now, my focus is on one thing: making the foundational smart contracts solid and ready for launch.
 
-The Reality of the Grind
-Right now, I am building this solo. I don't have a massive dev team, I just have the commitment and the hours I put into it. 
+The Reality of the Grind  
+Currently, I’m building this alone. I don’t have a big development team; I just have my dedication and the time I invest.
 
-My immediate goal is to successfully launch the V1 beta, prove the concept, and use the generated protocol fees (or early VC backing) for one specific purpose: Security Audits. I will not push V2 or V3 to the public until this code is audited to its absolute maximum potential.
+My immediate goal is to launch the V1 beta, prove the concept, and use the protocol fees generated or early VC support for one specific purpose: security audits. I will not release V2 or V3 to the public until this code is audited to the highest standard.
 
-Security is the Religion
-If there is one thing I value above everything else, it’s security. I would rather delay a launch indefinitely than let an exploit steal people's money. The entire point of this community is privacy and safety. People deserve the right to move comfortably and legally on-chain without having the whole world monitor their net worth or trade history. A hack destroys that trust permanently.
+Security is the Priority  
+If there’s one thing I value above everything else, it’s security. I would rather delay a launch for as long as needed than risk an exploit that could steal people’s money. The main purpose of this community is privacy and safety. People should have the right to operate comfortably and legally on-chain without the whole world watching their net worth or trade history. A hack destroys that trust forever.
 
-The Legal Side (Dealing with Bad Actors)
-When people hear "privacy protocol," their first worry is that it will be used by criminals to launder money. I take this seriously. 
+The Legal Side (Dealing with Bad Actors)  
+When people hear "privacy protocol," their first concern is that it may be used by criminals to launder money. I take this seriously.
 
-Here is my solution: By V2/V3, once the community and funding are there, NOFACE will integrate strict, smart-contract-level blacklisting for high-risk and malicious wallets. If an address is flagged for illegal activity, the math will simply reject them. They will not be able to trade their crypto into the NOFACE economy.
+Here’s my plan: By V2/V3, once we have community support and funding, NOFACE will integrate strict, smart-contract-level blacklisting for high-risk and malicious wallets. If an address is flagged for illegal activity, the system will simply reject them. They won’t be able to trade their crypto in the NOFACE economy.
 
-But here is the line I will not cross: There will be zero centralization. 
-I will never build an "admin key" that can freeze a user's wallet. Nobody's assets will ever be trapped or locked by a central authority. We will block bad actors from entering the system at the smart-contract level, but we (OR I, somtimes I use we because im hoping I can get a Team soon enough.) will never compromise the decentralized sovereignty of the protocol.
+But here’s the one rule I will not break: There will be no centralization.  
+I will never create an "admin key" that can freeze a user’s wallet. No one’s assets will ever be trapped or locked by a central authority. We will block bad actors from entering the system at the smart-contract level, but we (sometimes I say we because I hope to have a team soon) will never compromise the decentralized nature of the protocol.
 
+I’m not sure how things will unfold since things change as you learn more through experience. There are flaws in my work. I get it, but as a solo developer, it can be tough to find that rhythm. I also know that when many of you look at my code or .MD files, you see mistakes and things I mistakenly claim are correct. I apologize for that. I’m doing my best and hope to make this project exciting.
 
-
-Im not sure how things will go since thigns change as you learn more the more you work. there are some flaws in my stuff. I understand, but as a solo it can be really hard to easily find that flow. Also, I understand, when alot of you look at my code or .MD files you see mistakes I write in there and things that I unknowlingly claim is right. I Apoligize for that. I am trying my best and I hope to make this project a blast.
-
-lastly: I dont know if I mentioned this clearly, but ill mentioned this again. alot of my .md files where made by AI. I dont not want you guys to suffer reading bad littercy. It also makes my workflow alot more smoother.
+Lastly, I’m not sure if I mentioned this clearly, so I’ll say it again. Many of my .md files were created with AI. I don’t want you all to struggle with poor writing. It also makes my workflow much smoother.
