@@ -31,7 +31,6 @@ contract NofaceVault is MerkleTreeWithHistory, Ownable {
     uint256 public constant DENOM_MEDIUM = 1_000 * 1e6;
     uint256 public constant DENOM_LARGE  = 10_000 * 1e6;
     uint256 public constant FEE_BPS      = 30;
-
     uint256 public constant SNARK_SCALAR_FIELD =
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
@@ -74,7 +73,6 @@ contract NofaceVault is MerkleTreeWithHistory, Ownable {
 
         commitmentExists[commitment] = true;
         token.safeTransferFrom(msg.sender, address(this), denomination);
-
         uint32 leafIndex = _insert(uint256(commitment));
         emit Deposit(commitment, leafIndex, denomination);
     }
@@ -86,11 +84,11 @@ contract NofaceVault is MerkleTreeWithHistory, Ownable {
         address recipient,
         uint256 denomination
     ) external nonReentrant {
-        if (!isKnownRoot(uint256(root))) revert InvalidRoot();
+        if (!isKnownRoot(uint256(root)))   revert InvalidRoot();
         if (nullifierSpent[nullifierHash]) revert NullifierAlreadySpent();
         if (denomination != DENOM_SMALL &&
             denomination != DENOM_MEDIUM &&
-            denomination != DENOM_LARGE) revert InvalidDenomination();
+            denomination != DENOM_LARGE)   revert InvalidDenomination();
 
         bytes32[] memory publicInputs = new bytes32[](4);
         publicInputs[0] = nullifierHash;
@@ -98,8 +96,16 @@ contract NofaceVault is MerkleTreeWithHistory, Ownable {
         publicInputs[2] = bytes32(uint256(uint160(recipient)));
         publicInputs[3] = bytes32(denomination);
 
-        if (!IHonkVerifier(verifier).verify(proof, publicInputs))
+        // HonkVerifier reverts on invalid proof (SumcheckFailed etc.)
+        // rather than returning false. Wrap in try/catch so the vault
+        // always surfaces ProofVerificationFailed to the caller.
+        bool ok;
+        try IHonkVerifier(verifier).verify(proof, publicInputs) returns (bool result) {
+            ok = result;
+        } catch {
             revert ProofVerificationFailed();
+        }
+        if (!ok) revert ProofVerificationFailed();
 
         // CEI: mark spent before transfer
         nullifierSpent[nullifierHash] = true;
