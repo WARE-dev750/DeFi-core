@@ -2,9 +2,11 @@
 pragma solidity ^0.8.23;
 
 import {Test} from "forge-std/Test.sol";
-import {NofaceVault} from "../contracts/src/core/NofaceVault.sol";
+import {NofaceVault} from "src/core/NofaceVault.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 
+// MockVerifier accepts any non-empty proof — used for vault logic tests only.
+// ZK correctness is proven separately in HonkVerifier.t.sol with a real proof.
 contract MockVerifier {
     function verify(bytes calldata proof, bytes32[] calldata) external pure returns (bool) {
         return proof.length > 0;
@@ -12,17 +14,18 @@ contract MockVerifier {
 }
 
 contract NofaceVaultTest is Test {
+
     NofaceVault  vault;
     MockERC20    token;
     MockVerifier verifier;
 
-    address alice = address(0xA11CE);
-    address bob   = address(0xB0B);
+    address alice   = address(0xA11CE);
+    address bob     = address(0xB0B);
+    address solver  = address(0x50100);
 
     uint256 constant SNARK_FIELD =
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
-    // Cache denominations to avoid consuming vm.prank with static calls
     uint256 SMALL;
     uint256 MEDIUM;
     uint256 LARGE;
@@ -32,7 +35,6 @@ contract NofaceVaultTest is Test {
         verifier = new MockVerifier();
         vault    = new NofaceVault(address(token), address(verifier));
 
-        // Cache before any pranks
         SMALL  = vault.DENOM_SMALL();
         MEDIUM = vault.DENOM_MEDIUM();
         LARGE  = vault.DENOM_LARGE();
@@ -49,9 +51,12 @@ contract NofaceVaultTest is Test {
         vm.stopPrank();
     }
 
+    // Valid field element commitment
     function _c(uint256 n) internal pure returns (bytes32) {
         return bytes32(n % SNARK_FIELD);
     }
+
+    // ── Deposit tests ─────────────────────────────────────────────────────────
 
     function test_DepositIncreasesLeafCount() public {
         vm.prank(alice);
@@ -72,7 +77,7 @@ contract NofaceVaultTest is Test {
         vault.deposit(_c(1), 999 * 1e6);
     }
 
-    function test_DoubleSpendReverts() public {
+    function test_DuplicateCommitmentReverts() public {
         bytes32 c = _c(42);
         vm.prank(alice);
         vault.deposit(c, SMALL);
@@ -81,56 +86,134 @@ contract NofaceVaultTest is Test {
         vault.deposit(c, SMALL);
     }
 
-    function test_WithdrawReleasesFunds() public {
+    function test_CommitmentOutOfFieldReverts() public {
         vm.prank(alice);
-        vault.deposit(_c(1), SMALL);
-        bytes32 root      = vault.getRoot();
-        bytes32 nullifier = keccak256("nullifier_1");
-        uint256 fee       = (SMALL * vault.FEE_BPS()) / 10_000;
-        uint256 bobBefore = token.balanceOf(bob);
-        vm.prank(bob);
-        vault.withdraw(bytes("proof"), nullifier, root, bob, SMALL);
-        assertEq(token.balanceOf(bob), bobBefore + SMALL - fee);
+        vm.expectRevert(NofaceVault.CommitmentOutOfField.selector);
+        vault.deposit(bytes32(SNARK_FIELD), SMALL); // exactly at boundary — invalid
+    }
+
+    // ── Withdraw tests ────────────────────────────────────────────────────────
+
+    function _deposit(address who, bytes32 commitment, uint256 denom) internal {
+        vm.prank(who);
+        vault.deposit(commitment, denom);
+    }
+
+    function _withdraw(
+        address caller,
+        bytes32 nullifier,
+        address recipient,
+        uint256 denom,
+        address relayer,
+        uint256 fee
+    ) internal {
+        bytes32 root = vault.getRoot();
+        vm.prank(caller);
+        vault.withdraw(
+            bytes("proof"),
+            nullifier,
+            root,
+            recipient,
+            denom,
+            relayer,
+            fee
+        );
+    }
+
+    function test_WithdrawReleasesFunds() public {
+        _deposit(alice, _c(1), SMALL);
+
+        uint256 protocolFee = (SMALL * vault.FEE_BPS()) / 10_000;
+        uint256 bobBefore   = token.balanceOf(bob);
+
+        _withdraw(bob, keccak256("n1"), bob, SMALL, address(0), 0);
+
+        assertEq(token.balanceOf(bob), bobBefore + SMALL - protocolFee);
     }
 
     function test_DoubleWithdrawReverts() public {
-        vm.prank(alice);
-        vault.deposit(_c(1), SMALL);
-        bytes32 root      = vault.getRoot();
-        bytes32 nullifier = keccak256("nullifier_1");
-        vm.prank(bob);
-        vault.withdraw(bytes("proof"), nullifier, root, bob, SMALL);
+        _deposit(alice, _c(1), SMALL);
+        _withdraw(bob, keccak256("n1"), bob, SMALL, address(0), 0);
+
+        bytes32 root = vault.getRoot();
         vm.prank(bob);
         vm.expectRevert(NofaceVault.NullifierAlreadySpent.selector);
-        vault.withdraw(bytes("proof"), nullifier, root, bob, SMALL);
+        vault.withdraw(bytes("proof"), keccak256("n1"), root, bob, SMALL, address(0), 0);
     }
 
     function test_InvalidRootReverts() public {
-        vm.prank(alice);
-        vault.deposit(_c(1), SMALL);
+        _deposit(alice, _c(1), SMALL);
+
         vm.prank(bob);
         vm.expectRevert(NofaceVault.InvalidRoot.selector);
         vault.withdraw(
             bytes("proof"),
-            keccak256("n"),
-            bytes32(uint256(0xdead)),
+            keccak256("n1"),
+            bytes32(uint256(0xdead)), // bad root
             bob,
-            SMALL
+            SMALL,
+            address(0),
+            0
         );
     }
 
-    function test_VaultSolvencyAfterWithdraw() public {
-        vm.prank(alice);
-        vault.deposit(_c(1), SMALL);
-        assertEq(token.balanceOf(address(vault)), SMALL);
-        bytes32 root      = vault.getRoot();
-        bytes32 nullifier = keccak256("nullifier_1");
-        uint256 fee       = (SMALL * vault.FEE_BPS()) / 10_000;
+    function test_UnauthorizedRelayerReverts() public {
+        _deposit(alice, _c(1), SMALL);
+
+        bytes32 root = vault.getRoot();
+        // proof says relayer=solver, but msg.sender=bob
         vm.prank(bob);
-        vault.withdraw(bytes("proof"), nullifier, root, bob, SMALL);
-        // Pull pattern: fees accumulate in vault, NOT pushed to owner.
-        // Vault balance should equal the accumulated fee.
-        assertEq(token.balanceOf(address(vault)), fee);
-        assertEq(vault.accumulatedFees(), fee);
+        vm.expectRevert(NofaceVault.UnauthorizedRelayer.selector);
+        vault.withdraw(bytes("proof"), keccak256("n1"), root, bob, SMALL, solver, 0);
+    }
+
+    function test_SolverReceivesFee() public {
+        _deposit(alice, _c(1), SMALL);
+
+        uint256 solverFee     = 1_000; // 0.001 USDC
+        uint256 solverBefore  = token.balanceOf(solver);
+
+        // solver calls directly — relayer == msg.sender == solver
+        bytes32 root = vault.getRoot();
+        vm.prank(solver);
+        vault.withdraw(bytes("proof"), keccak256("n1"), root, bob, SMALL, solver, solverFee);
+
+        assertEq(token.balanceOf(solver), solverBefore + solverFee);
+    }
+
+    function test_PermissionlessSolverGetsFee() public {
+        // relayer=address(0): anyone can submit, msg.sender gets fee
+        _deposit(alice, _c(1), SMALL);
+
+        uint256 solverFee    = 500;
+        uint256 solverBefore = token.balanceOf(solver);
+
+        bytes32 root = vault.getRoot();
+        vm.prank(solver);
+        vault.withdraw(bytes("proof"), keccak256("n1"), root, bob, SMALL, address(0), solverFee);
+
+        assertEq(token.balanceOf(solver), solverBefore + solverFee);
+    }
+
+    function test_FeeTooHighReverts() public {
+        _deposit(alice, _c(1), SMALL);
+
+        bytes32 root = vault.getRoot();
+        vm.prank(bob);
+        vm.expectRevert(NofaceVault.FeeTooHigh.selector);
+        // fee alone exceeds denomination
+        vault.withdraw(bytes("proof"), keccak256("n1"), root, bob, SMALL, address(0), SMALL);
+    }
+
+    function test_VaultSolvencyAfterWithdraw() public {
+        _deposit(alice, _c(1), SMALL);
+        assertEq(token.balanceOf(address(vault)), SMALL);
+
+        uint256 protocolFee = (SMALL * vault.FEE_BPS()) / 10_000;
+        _withdraw(bob, keccak256("n1"), bob, SMALL, address(0), 0);
+
+        // Pull pattern: protocol fees stay in vault until owner claims
+        assertEq(token.balanceOf(address(vault)), protocolFee);
+        assertEq(vault.accumulatedFees(), protocolFee);
     }
 }
