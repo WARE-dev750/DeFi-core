@@ -1,0 +1,25 @@
+# Build artifacts
+contracts/out/
+cache/
+contracts/cache/
+
+# Foundry
+broadcast/
+
+# Node
+node_modules/
+
+# Environment
+.env
+.env.*
+
+# GitHub Actions
+.github/workflows/main.yml
+
+# Noir/Barretenberg build artifacts
+circuits/target/
+circuits/Prover.toml
+
+# Foundry dependencies
+contracts/lib/
+lib/

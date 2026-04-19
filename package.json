@@ -1,0 +1,31 @@
+{
+  "name": "defi-core",
+  "version": "1.0.0",
+  "description": "> **Layer-2 Native Privacy Primitive & Shielded Asset Vault.** > *Null-Output Financial Anonymity & Cipher Engine.*",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WARE-dev750/DeFi-core.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/WARE-dev750/DeFi-core/issues"
+  },
+  "homepage": "https://github.com/WARE-dev750/DeFi-core#readme",
+  "dependencies": {
+    "@noble/hashes": "^2.0.1",
+    "@zk-kit/imt.sol": "^2.0.0-beta.12",
+    "@zk-kit/lean-imt.sol": "^2.0.1",
+    "circomlibjs": "^0.1.7"
+  }
+}
