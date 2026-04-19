@@ -2,8 +2,13 @@
 pragma solidity ^0.8.27;
 
 import {Script, console} from "forge-std/Script.sol";
+<<<<<<< HEAD
 import {NofaceVault} from "src/core/NofaceVault.sol";
 import {HonkVerifier} from "src/core/HonkVerifier.sol";
+=======
+import {NofaceVault} from "../contracts/src/core/NofaceVault.sol";
+import {HonkVerifier} from "../contracts/src/core/HonkVerifier.sol";
+>>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 // Mock USDC for testnet only -- replace with real USDC address on mainnet

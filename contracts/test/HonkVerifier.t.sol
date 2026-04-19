@@ -18,11 +18,16 @@ contract HonkVerifierTest is Test {
     bytes32 constant RELAYER      = bytes32(uint256(0));
     bytes32 constant FEE          = bytes32(uint256(0));
 
+<<<<<<< HEAD
     function _proofPath() internal view returns (string memory) {
         string memory fromEnv = vm.envOr("NOFACE_PROOF_PATH", string(""));
         if (bytes(fromEnv).length != 0) return fromEnv;
         return string.concat(vm.projectRoot(), "/circuits/target/proof/proof/proof");
     }
+=======
+    string constant PROOF_PATH =
+        "/home/robelsocial750/DeFi-core/circuits/target/proof/proof/proof";
+>>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
 
     function setUp() public {
         verifier = new HonkVerifier();
@@ -40,14 +45,22 @@ contract HonkVerifierTest is Test {
     }
 
     function test_realProofVerifies() public {
+<<<<<<< HEAD
         bytes memory proof = vm.readFileBinary(_proofPath());
+=======
+        bytes memory proof = vm.readFileBinary(PROOF_PATH);
+>>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
         bytes32[] memory pi = _buildPublicInputs();
         bool ok = verifier.verify(proof, pi);
         assertTrue(ok, "Real proof must verify");
     }
 
     function test_wrongPublicInputReverts() public {
+<<<<<<< HEAD
         bytes memory proof = vm.readFileBinary(_proofPath());
+=======
+        bytes memory proof = vm.readFileBinary(PROOF_PATH);
+>>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
         bytes32[] memory pi = _buildPublicInputs();
         // Corrupt nullifier_hash
         pi[0] = bytes32(uint256(pi[0]) ^ 1);
@@ -56,7 +69,11 @@ contract HonkVerifierTest is Test {
     }
 
     function test_wrongRelayerReverts() public {
+<<<<<<< HEAD
         bytes memory proof = vm.readFileBinary(_proofPath());
+=======
+        bytes memory proof = vm.readFileBinary(PROOF_PATH);
+>>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
         bytes32[] memory pi = _buildPublicInputs();
         // Swap relayer to non-zero — proof was generated with relayer=0
         pi[4] = bytes32(uint256(uint160(address(0xDEAD))));
@@ -65,7 +82,11 @@ contract HonkVerifierTest is Test {
     }
 
     function test_wrongFeeReverts() public {
+<<<<<<< HEAD
         bytes memory proof = vm.readFileBinary(_proofPath());
+=======
+        bytes memory proof = vm.readFileBinary(PROOF_PATH);
+>>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
         bytes32[] memory pi = _buildPublicInputs();
         // Change fee from 0 to 1 — proof was generated with fee=0
         pi[5] = bytes32(uint256(1));
