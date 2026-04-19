@@ -24,14 +24,8 @@ interface INofaceVault {
 /// - BatchManager has ZERO custody of funds. It only orchestrates calls to NofaceVault.
 /// - Each withdrawal is wrapped in try/catch. One bad proof does not revert the bundle.
 /// - Permissionless — any address can be a solver. No whitelist, no owner.
-<<<<<<< HEAD
 /// - Relayer is part of each intent and must match the proof public input.
 ///   This supports both permissionless proofs (relayer=0) and dedicated relayers.
-=======
-/// - Solver sets relayer = address(BatchManager) when building intents off-chain.
-///   NofaceVault sees msg.sender == BatchManager == relayer. Passes without any
-///   special trust assumption — pure msg.sender mechanics.
->>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
 /// - Solver collects all fees atomically in one transaction.
 ///
 /// MEV note: individual proofs are still MEV-proof at the cryptographic layer.
@@ -60,10 +54,7 @@ contract BatchManager is ReentrancyGuard {
         bytes32 root;
         address recipient;
         uint256 denomination;
-<<<<<<< HEAD
         address relayer;
-=======
->>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
         uint256 fee;
     }
 
@@ -72,12 +63,7 @@ contract BatchManager is ReentrancyGuard {
     }
 
     /// @notice Execute a bundle of withdrawal intents.
-<<<<<<< HEAD
     /// @dev    Each intent includes its relayer; value must match proof public inputs.
-=======
-    /// @dev    Solver must have set relayer = address(this) in each intent's
-    ///         ZK proof public inputs off-chain. The vault enforces this on-chain.
->>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
     /// @param  intents Array of withdrawal intents. Max MAX_BATCH_SIZE.
     function executeBatch(Intent[] calldata intents) external nonReentrant {
         if (intents.length == 0)                revert EmptyBatch();
@@ -94,11 +80,7 @@ contract BatchManager is ReentrancyGuard {
                 intent.root,
                 intent.recipient,
                 intent.denomination,
-<<<<<<< HEAD
                 intent.relayer,
-=======
-                address(this), // relayer = BatchManager — must match proof's public input
->>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
                 intent.fee
             ) {
                 emit BatchWithdrawal(intent.nullifierHash, intent.recipient, true, "");

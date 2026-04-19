@@ -13,9 +13,5 @@ remappings = [
     "forge-std/=lib/openzeppelin-contracts/lib/forge-std/src/"
 ]
 fs_permissions = [
-<<<<<<< HEAD
     { access = "read", path = "../circuits/target/proof/" }
-=======
-    { access = "read", path = "/home/robelsocial750/DeFi-core/circuits/target/proof/" }
->>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
 ]

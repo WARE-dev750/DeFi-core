@@ -59,16 +59,11 @@ contract BatchManagerTest is Test {
     address constant RECIPIENT  = address(0x1);
     uint256 constant DENOM      = 100_000_000;
 
-<<<<<<< HEAD
     function _proofPath() internal view returns (string memory) {
         string memory fromEnv = vm.envOr("NOFACE_PROOF_PATH", string(""));
         if (bytes(fromEnv).length != 0) return fromEnv;
         return string.concat(vm.projectRoot(), "/circuits/target/proof/proof/proof");
     }
-=======
-    string constant PROOF_PATH =
-        "/home/robelsocial750/DeFi-core/circuits/target/proof/proof/proof";
->>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
 
     function setUp() public {
         usdc        = new MockUSDC();
@@ -104,11 +99,7 @@ contract BatchManagerTest is Test {
     // The vault's permissionless path: relayer==address(0) so no relayer check.
     // msg.sender (BatchManager) receives the fee (fee=0 here so no transfer).
     function test_singleWithdrawalViaBatchManager() public {
-<<<<<<< HEAD
         bytes memory proof = vm.readFileBinary(_proofPath());
-=======
-        bytes memory proof = vm.readFileBinary(PROOF_PATH);
->>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
 
         // Fund depositor and deposit into vault
         address depositor = address(0xABC);
@@ -139,10 +130,7 @@ contract BatchManagerTest is Test {
             root:          ROOT,
             recipient:     RECIPIENT,
             denomination:  DENOM,
-<<<<<<< HEAD
             relayer:       address(0),
-=======
->>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
             fee:           0
         });
         intents[1] = BatchManager.Intent({
@@ -151,10 +139,7 @@ contract BatchManagerTest is Test {
             root:          ROOT,
             recipient:     RECIPIENT,
             denomination:  DENOM,
-<<<<<<< HEAD
             relayer:       address(0),
-=======
->>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
             fee:           0
         });
 
@@ -179,10 +164,7 @@ contract BatchManagerTest is Test {
                 root:          bytes32(uint256(i + 1)),
                 recipient:     address(uint160(i + 1)),
                 denomination:  DENOM,
-<<<<<<< HEAD
                 relayer:       address(0),
-=======
->>>>>>> 2186b1053832043c62ad4dc595db74e813e68ca3
                 fee:           0
             });
         }
