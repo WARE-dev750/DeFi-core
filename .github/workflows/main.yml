@@ -1,68 +1,77 @@
-name: Dump Repo Code (Clean)
+name: Generate Codebase as Text
 
 on:
-  workflow_dispatch:  # Manual trigger from GitHub UI
+  # Run manually from the Actions tab
+  workflow_dispatch:
+  
+  # Optional: run on every push to main (remove if you don't want automatic runs)
+  # push:
+  #   branches: [ main, master ]
 
 jobs:
-  dump:
+  create-code-text:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
     steps:
-      - name: Checkout code (with submodules)
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          fetch-depth: 0  # Get full history if needed
 
-      - name: Install tree
-        run: sudo apt-get update && sudo apt-get install -y tree
-
-      - name: Generate super clean code dump
+      - name: Generate full codebase as single text file
         run: |
-          TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S UTC")
-          COMMIT_SHA=${{ github.sha }}
-          OUTPUT="repo_dump_$(date +%Y%m%d_%H%M%S).md"
+          # Output file
+          OUTPUT_FILE="codebase-for-ai.txt"
+          
+          echo "=== CODEBASE DUMP FOR AI EVALUATION ===" > "$OUTPUT_FILE"
+          echo "Repository: ${{ github.repository }}" >> "$OUTPUT_FILE"
+          echo "Branch/Ref: ${{ github.ref }}" >> "$OUTPUT_FILE"
+          echo "Generated on: $(date)" >> "$OUTPUT_FILE"
+          echo "Total files included: (see below)" >> "$OUTPUT_FILE"
+          echo "" >> "$OUTPUT_FILE"
+          echo "==================================================" >> "$OUTPUT_FILE"
+          echo "" >> "$OUTPUT_FILE"
 
-          cat > "$OUTPUT" << EOF
-# DeFi-core / NOFACE Protocol - Clean Code Dump
-Generated on: $TIMESTAMP
-Commit: $COMMIT_SHA
-Branch: ${{ github.ref_name }}
+          # Find all text files tracked by Git, excluding common binary/heavy dirs
+          # This respects .gitignore and Git's text/binary detection
+          git ls-files --cached --others --exclude-standard | \
+          while read -r file; do
+            # Skip common binary-heavy or irrelevant paths
+            if [[ "$file" =~ ^(node_modules/|venv/|env/|\.git/|dist/|build/|target/|\.idea/|\.vscode/|__pycache__/|*.png|*.jpg|*.jpeg|*.gif|*.ico|*.svg|*.pdf|*.zip|*.tar|*.gz|*.7z|*.exe|*.dll|*.so|*.dylib|*.bin|*.dat|*.db|*.sqlite|*.pyc|*.pyo|*.class|*.jar)$ ]] || \
+               [[ "$file" == *.lock || "$file" == *package-lock.json || "$file" == *yarn.lock || "$file" == *Cargo.lock ]]; then
+              continue
+            fi
 
-## 📁 Full Directory Structure
-\`\`\`bash
-EOF
-
-          tree -I '.git|node_modules|out|cache|broadcast|dist|build|target' -a --dirsfirst >> "$OUTPUT" || true
-          echo '```' >> "$OUTPUT"
-          echo -e "\n## 📄 All Source & Config Files\n" >> "$OUTPUT"
-
-          # Only tracked files → zero junk, zero binaries
-          git ls-files --recurse-submodules | sort | while read -r file; do
-            echo -e "\n\n---\n\n### 📄 File: \`$file\`" >> "$OUTPUT"
-            
-            ext="\${file##*.}"
-            case "\$ext" in
-              sol) lang="solidity" ;;
-              nr)  lang="noir" ;;
-              js)  lang="javascript" ;;
-              ts)  lang="typescript" ;;
-              json) lang="json" ;;
-              toml) lang="toml" ;;
-              md)  lang="markdown" ;;
-              sh)  lang="bash" ;;
-              yml|yaml) lang="yaml" ;;
-              *)   lang="text" ;;
-            esac
-
-            echo "\`\`\`\${lang}" >> "$OUTPUT"
-            cat "\$file" >> "$OUTPUT" 2>/dev/null || echo "# Could not read file" >> "$OUTPUT"
-            echo -e "\`\`\`\n" >> "$OUTPUT"
+            # Only include actual text files (Git's way to detect binary)
+            if git grep --cached -Il '' "$file" > /dev/null 2>&1; then
+              echo "==================================================" >> "$OUTPUT_FILE"
+              echo "FILE: $file" >> "$OUTPUT_FILE"
+              echo "==================================================" >> "$OUTPUT_FILE"
+              echo "" >> "$OUTPUT_FILE"
+              
+              # Add the file content with proper encoding handling
+              cat "$file" >> "$OUTPUT_FILE" 2>/dev/null || echo "[Could not read file - possibly binary or encoding issue]" >> "$OUTPUT_FILE"
+              
+              echo "" >> "$OUTPUT_FILE"
+              echo "" >> "$OUTPUT_FILE"
+            fi
           done
 
-          echo "✅ Dump complete → $OUTPUT"
+          # Summary at the end
+          echo "==================================================" >> "$OUTPUT_FILE"
+          echo "END OF CODEBASE DUMP" >> "$OUTPUT_FILE"
+          echo "Total text files processed: $(grep -c '^FILE:' "$OUTPUT_FILE" || echo "unknown")" >> "$OUTPUT_FILE"
 
-      - name: Upload clean dump as artifact
+          echo "Codebase text file generated: $OUTPUT_FILE"
+          ls -lh "$OUTPUT_FILE"
+
+      - name: Upload codebase text as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NOFACE-clean-code-dump
-          path: repo_dump_*.md
-          retention-days: 30
+          name: codebase-for-ai
+          path: codebase-for-ai.txt
+          retention-days: 30   # How long the download link stays available
+          if-no-files-found: error
