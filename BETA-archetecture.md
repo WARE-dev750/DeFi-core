@@ -34,7 +34,7 @@ graph TB
     subgraph Meta["LAYER 1 — METADATA SHIELD (Nobody Sees Your IP)"]
         direction LR
         OHTTP["OHTTP Gateway\nOblivious HTTP\nHides user IP address\nfrom all RPC providers"]:::offchain
-        SDK["NOFACE SDK\nGenerates ZK-Intents\nManages secret notes\nNo gas required"]:::offchain
+        SDK["VielFI SDK\nGenerates ZK-Intents\nManages secret notes\nNo gas required"]:::offchain
         NoteDisc["Note Discovery\nScans chain for\nyour private notes\nwithout leaking identity"]:::offchain
     end
 
@@ -52,7 +52,7 @@ graph TB
             ERC20_Vault["Universal Vault\nAny ERC-20\nPermissionless V2"]:::contract
         end
 
-        NofaceVault["NofaceVault.sol\nMaster State Controller\nIssues private notes\nTracks shielded balances\nNever knows who owns what"]:::contract
+        VielFIVault["VielFIVault.sol\nMaster State Controller\nIssues private notes\nTracks shielded balances\nNever knows who owns what"]:::contract
 
         subgraph TreeLayer["Cryptographic Memory — BUILT TODAY ✅"]
             Tree["IncrementalTree.sol\nSemaphore Fork\nEthereum Foundation\nPoseidon2 Hash\nTracks all commitments"]:::done
@@ -97,9 +97,9 @@ graph TB
         IntentPool["IntentPool.sol\nEncrypted intent storage\nUser signs not submits\nAnti-griefing bonds\nBad proofs ejected not reverted"]:::contract
 
         subgraph SolverNet["Solver Network"]
-            Solver1["Solver A\nStakes NOFACE\nPays L2 gas\nEarns execution fee"]:::offchain
-            Solver2["Solver B\nStakes NOFACE\nCompetes for intents\nSlashed if malicious"]:::offchain
-            Solver3["Solver C\nInstitutional solver\nHigh volume\nLarge NOFACE stake"]:::offchain
+            Solver1["Solver A\nStakes VielFI\nPays L2 gas\nEarns execution fee"]:::offchain
+            Solver2["Solver B\nStakes VielFI\nCompetes for intents\nSlashed if malicious"]:::offchain
+            Solver3["Solver C\nInstitutional solver\nHigh volume\nLarge VielFI stake"]:::offchain
         end
 
         Slashing["Slashing Contract\nSolver bond management\nFront-run detection\nAutomatic slash on proof\nof malicious behavior"]:::contract
@@ -113,7 +113,7 @@ graph TB
 
     subgraph SwapLayer["LAYER 5 — PRIVATE SWAP ENGINE (Uniswap v4)"]
         direction LR
-        Hook["NofaceHook.sol\nUniswap v4 Hook\nTSTORE privacy routing\nPulls from vault\nTrades on AMM\nReturns to vault\nOne invisible transaction"]:::contract
+        Hook["VielFIHook.sol\nUniswap v4 Hook\nTSTORE privacy routing\nPulls from vault\nTrades on AMM\nReturns to vault\nOne invisible transaction"]:::contract
         Oracle["PrivacyOracle.sol\nClean set root\nData availability only\nNo policy enforcement"]:::contract
         UniV4["Uniswap v4 Singleton\nPublic AMM\n5B+ liquidity\nSees swap size\nNever sees identity"]:::uni
     end
@@ -122,23 +122,23 @@ graph TB
     %% PRIVATE ECONOMY LAYER
     %% ════════════════════════════════════════
 
-    subgraph Economy["LAYER 6 — THE PRIVATE ECONOMY (Everything Denominated in $NOFACE)"]
+    subgraph Economy["LAYER 6 — THE PRIVATE ECONOMY (Everything Denominated in $VielFI)"]
         direction TB
 
         subgraph Betting["Private Betting Markets"]
-            BetEngine["BettingEngine.sol\nOn-chain bet settlement\nZK-verified outcomes\nNo identity revealed\nEntry fee in NOFACE\n10% of pot burned"]:::economy
-            BetPool["Bet Pool\nLocked NOFACE\nEscrow per event\nAuto-released on proof\nof outcome"]:::economy
+            BetEngine["BettingEngine.sol\nOn-chain bet settlement\nZK-verified outcomes\nNo identity revealed\nEntry fee in VielFI\n10% of pot burned"]:::economy
+            BetPool["Bet Pool\nLocked VielFI\nEscrow per event\nAuto-released on proof\nof outcome"]:::economy
             BetOracle["Outcome Oracle\nChainlink VRF\nVerifiable randomness\nCannot be manipulated\nProof of fair result"]:::economy
         end
 
         subgraph Tournaments["Private Tournaments"]
-            TournEngine["TournamentEngine.sol\nBracket management\nEntry in NOFACE\nPrivate leaderboard\nWinner takes pool\n5% burned per round"]:::economy
+            TournEngine["TournamentEngine.sol\nBracket management\nEntry in VielFI\nPrivate leaderboard\nWinner takes pool\n5% burned per round"]:::economy
             TournPool["Prize Pool\nEscrow contract\nMulti-round support\nAuto-payout on ZK proof\nof bracket completion"]:::economy
         end
 
         subgraph YieldGames["Yield Events"]
-            YieldEngine["YieldEngine.sol\nTime-locked NOFACE\nYield from protocol fees\nMultiplier for duration\nAnti-sybil via time weight"]:::economy
-            YieldPool["Yield Pool\nReal yield in USDC\nFed by protocol fees\nDistributed pro-rata\nto locked NOFACE"]:::economy
+            YieldEngine["YieldEngine.sol\nTime-locked VielFI\nYield from protocol fees\nMultiplier for duration\nAnti-sybil via time weight"]:::economy
+            YieldPool["Yield Pool\nReal yield in USDC\nFed by protocol fees\nDistributed pro-rata\nto locked VielFI"]:::economy
         end
 
         subgraph Community["Community Events"]
@@ -151,24 +151,24 @@ graph TB
     %% TOKEN ECONOMICS
     %% ════════════════════════════════════════
 
-    subgraph TokenEcon["LAYER 7 — $NOFACE ECONOMIC ENGINE"]
+    subgraph TokenEcon["LAYER 7 — $VielFI ECONOMIC ENGINE"]
         direction TB
 
         FeeCollector["Fee Collector\n0.3% on all volume\nCollected in traded asset\nAuto-converted on-chain"]:::burn
 
         subgraph FeeDistribution["Fee Distribution"]
-            StakerYield["Staker Yield\n0.1% of volume\nPaid in USDC\nReal yield not inflation\nPro-rata to locked NOFACE"]:::economy
-            BuyBurn["Buyback and Burn\n0.1% of volume\nMarket buys NOFACE\nSends to 0x000 address\nPermanent supply reduction"]:::burn
+            StakerYield["Staker Yield\n0.1% of volume\nPaid in USDC\nReal yield not inflation\nPro-rata to locked VielFI"]:::economy
+            BuyBurn["Buyback and Burn\n0.1% of volume\nMarket buys VielFI\nSends to 0x000 address\nPermanent supply reduction"]:::burn
             Treasury["Protocol Treasury\n0.1% of volume\nFunds audits\nFunds engineering\nFunds legal\nFunds grants"]:::contract
         end
 
         subgraph Staking["Staking and Governance"]
-            StakeContract["StakingContract.sol\nLock NOFACE\nEarn real yield\nVoting power\nTime-weighted multiplier\n6mo to 2yr lockups"]:::economy
-            DAO["NOFACE DAO\nGoverns fee structure\nGoverns new assets\nGoverns chain expansion\nGoverns compliance params\nGoverns economy events"]:::economy
+            StakeContract["StakingContract.sol\nLock VielFI\nEarn real yield\nVoting power\nTime-weighted multiplier\n6mo to 2yr lockups"]:::economy
+            DAO["VielFI DAO\nGoverns fee structure\nGoverns new assets\nGoverns chain expansion\nGoverns compliance params\nGoverns economy events"]:::economy
         end
 
         subgraph Supply["Supply Mechanics"]
-            TotalSupply["1,000,000,000 NOFACE\nFixed forever\nNon-inflationary\nOnly decreases via burn"]:::burn
+            TotalSupply["1,000,000,000 VielFI\nFixed forever\nNon-inflationary\nOnly decreases via burn"]:::burn
             BurnAddress["0x000 Burn Address\nPermanent destruction\nPublicly verifiable\nIrreversible"]:::burn
         end
     end
@@ -200,14 +200,14 @@ graph TB
     SDK --> IntentPool
 
     %% Vault entry
-    SDK --> NofaceVault
-    ETH_Vault & USDC_Vault & BTC_Vault & ERC20_Vault --> NofaceVault
-    NofaceVault --> Tree
+    SDK --> VielFIVault
+    ETH_Vault & USDC_Vault & BTC_Vault & ERC20_Vault --> VielFIVault
+    VielFIVault --> Tree
     Tree --> Nullifiers
     Tree --> RootHistory
 
     %% ZK flows
-    NofaceVault --> Prover
+    VielFIVault --> Prover
     Prover --> MainNR
     MainNR --> SwapNR & TransferNR & BetNR & WithdrawNR
     CleanSet --> MainNR
@@ -219,19 +219,19 @@ graph TB
     IntentPool --> Solver1 & Solver2 & Solver3
     Solver1 & Solver2 & Solver3 --> BatchManager
     Solver1 & Solver2 & Solver3 --> Slashing
-    BatchManager --> NofaceVault
+    BatchManager --> VielFIVault
 
     %% Swap flows
-    NofaceVault --> Hook
+    VielFIVault --> Hook
     Hook --> UniV4
     UniV4 --> Hook
-    Hook --> NofaceVault
+    Hook --> VielFIVault
 
     %% Economy flows
-    NofaceVault --> BetEngine
-    NofaceVault --> TournEngine
-    NofaceVault --> YieldEngine
-    NofaceVault --> CommunityEngine
+    VielFIVault --> BetEngine
+    VielFIVault --> TournEngine
+    VielFIVault --> YieldEngine
+    VielFIVault --> CommunityEngine
     BetEngine --> BetPool
     BetEngine --> BetOracle
     TournEngine --> TournPool
@@ -239,7 +239,7 @@ graph TB
     CommunityEngine --> PredMarket
 
     %% Fee flows
-    NofaceVault --> FeeCollector
+    VielFIVault --> FeeCollector
     BetEngine --> FeeCollector
     TournEngine --> FeeCollector
     FeeCollector --> StakerYield & BuyBurn & Treasury
