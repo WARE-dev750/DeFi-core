@@ -1,9 +1,9 @@
-# TOKENOMICS.md: $NOFACE Token Economic Model
+# TOKENOMICS.md: $VielFI Token Economic Model
 
 ## 1. Token Overview
-The **$NOFACE** token is the native utility and governance asset of the NOFACE Protocol. It coordinates the interests of users, liquidity providers, and the protocol treasury through mathematical incentives.
+The **$VielFI** token is the native utility and governance asset of the VielFI Protocol. It coordinates the interests of users, liquidity providers, and the protocol treasury through mathematical incentives.
 
-*   **Ticker:** $NOFACE
+*   **Ticker:** $VielFI
 *   **Total Supply:** 1,000,000,000 (Fixed; non-inflationary)
 *   **Asset Standard:** ERC-20 (L2-Native)
 
@@ -19,20 +19,20 @@ To ensure long-term stability and prevent market manipulation, all team and inve
 | **Airdrop & Community**| **10%** | 100% Unlocked at Launch | Bootstrapping initial protocol volume and users. |
 
 ## 3. Revenue Model & Gas Economics
-To account for the high computational cost of Zero-Knowledge proof verification, NOFACE utilizes a **Hybrid Fee Structure**:
+To account for the high computational cost of Zero-Knowledge proof verification, VielFI utilizes a **Hybrid Fee Structure**:
 
 1.  **The Proof Verification Fee (Flat):** A fixed cost (calculated in gas) charged on every shielding transaction to cover the cost of ZK-proof verification on the L2.
 2.  **The Protocol Service Fee (0.3%):** A percentage-based fee charged on the volume of assets being privatized.
 3.  **Revenue Distribution:**
-    *   **50%** distributed to $NOFACE stakers as "Real Yield."
+    *   **50%** distributed to $VielFI stakers as "Real Yield."
     *   **25%** to the Protocol Treasury for ongoing operations.
     *   **25%** used for "Buyback-and-Burn" to increase token scarcity.
 
 ## 4. Sybil-Resistant Liquidity Incentives
-To prevent "Whales" from gaming the system by splitting capital into multiple wallets, NOFACE uses **Time-Weighted Staking**:
+To prevent "Whales" from gaming the system by splitting capital into multiple wallets, VielFI uses **Time-Weighted Staking**:
 
 *   **The Multiplier:** Liquidity rewards are not based solely on the amount of capital. They are multiplied based on the **duration** the capital has been locked in the pool.
-*   **Governance Locking:** Users who lock $NOFACE for longer periods (e.g., 6 months to 2 years) receive higher voting power and a larger share of the protocol revenue.
+*   **Governance Locking:** Users who lock $VielFI for longer periods (e.g., 6 months to 2 years) receive higher voting power and a larger share of the protocol revenue.
 *   **The Result:** This makes it mathematically more profitable to keep capital in one "aged" account rather than splitting it into new wallets.
 
 ## 5. Institutional "Whitelisted" Liquidity
