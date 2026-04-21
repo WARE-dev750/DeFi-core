@@ -1,3 +1,4 @@
+```Mermaid
 graph TB
     classDef user fill:#e74c3c,stroke:#c0392b,stroke-width:2px,color:#fff
     classDef entry fill:#f39c12,stroke:#d35400,stroke-width:2px,color:#fff
