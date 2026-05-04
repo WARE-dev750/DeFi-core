@@ -1,7 +1,7 @@
 [package]
 name = "noface_kernel"
 type = "bin"
-authors = ["NOFACE Protocol"]
+authors = ["VeilFi Protocol"]
 entry = "src/kernel/main.nr"
 
 [dependencies]

@@ -2,8 +2,8 @@
 pragma solidity ^0.8.27;
 
 import {Script, console} from "forge-std/Script.sol";
-import {NofaceVault} from "../contracts/src/core/NofaceVault.sol";
-import {HonkVerifier} from "../contracts/src/core/HonkVerifier.sol";
+import {VeilVault} from "src/core/VeilVault.sol";
+import {HonkVerifier} from "src/core/HonkVerifier.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 // Mock USDC for testnet only -- replace with real USDC address on mainnet
@@ -14,7 +14,7 @@ contract TestUSDC is ERC20 {
     function decimals() public pure override returns (uint8) { return 6; }
 }
 
-contract DeployNoface is Script {
+contract DeployVeilFi is Script {
     function run() external {
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
         address deployer    = vm.addr(deployerKey);
@@ -34,16 +34,16 @@ contract DeployNoface is Script {
         HonkVerifier verifier = new HonkVerifier();
         console.log("HonkVerifier deployed:", address(verifier));
 
-        NofaceVault vault = new NofaceVault(
+        VeilVault vault = new VeilVault(
             address(usdc),
             address(verifier)
         );
-        console.log("NofaceVault deployed: ", address(vault));
+        console.log("VeilVault deployed: ", address(vault));
 
         vm.stopBroadcast();
 
         console.log("---");
-        console.log("NOFACE Deployment Complete");
+        console.log("VeilFi Deployment Complete");
         console.log("USDC:     ", address(usdc));
         console.log("Verifier: ", address(verifier));
         console.log("Vault:    ", address(vault));

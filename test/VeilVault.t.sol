@@ -2,7 +2,7 @@
 pragma solidity ^0.8.23;
 
 import {Test} from "forge-std/Test.sol";
-import {NofaceVault} from "src/core/NofaceVault.sol";
+import {VeilVault} from "src/core/VeilVault.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 
 // MockVerifier accepts any non-empty proof — used for vault logic tests only.
@@ -13,9 +13,9 @@ contract MockVerifier {
     }
 }
 
-contract NofaceVaultTest is Test {
+contract VeilVaultTest is Test {
 
-    NofaceVault  vault;
+    VeilVault  vault;
     MockERC20    token;
     MockVerifier verifier;
 
@@ -33,7 +33,7 @@ contract NofaceVaultTest is Test {
     function setUp() public {
         token    = new MockERC20("USDC", "USDC", 6);
         verifier = new MockVerifier();
-        vault    = new NofaceVault(address(token), address(verifier));
+        vault    = new VeilVault(address(token), address(verifier));
 
         SMALL  = vault.DENOM_SMALL();
         MEDIUM = vault.DENOM_MEDIUM();
@@ -73,7 +73,7 @@ contract NofaceVaultTest is Test {
 
     function test_InvalidDenominationReverts() public {
         vm.prank(alice);
-        vm.expectRevert(NofaceVault.InvalidDenomination.selector);
+        vm.expectRevert(VeilVault.InvalidDenomination.selector);
         vault.deposit(_c(1), 999 * 1e6);
     }
 
@@ -82,13 +82,13 @@ contract NofaceVaultTest is Test {
         vm.prank(alice);
         vault.deposit(c, SMALL);
         vm.prank(alice);
-        vm.expectRevert(NofaceVault.CommitmentAlreadyExists.selector);
+        vm.expectRevert(VeilVault.CommitmentAlreadyExists.selector);
         vault.deposit(c, SMALL);
     }
 
     function test_CommitmentOutOfFieldReverts() public {
         vm.prank(alice);
-        vm.expectRevert(NofaceVault.CommitmentOutOfField.selector);
+        vm.expectRevert(VeilVault.CommitmentOutOfField.selector);
         vault.deposit(bytes32(SNARK_FIELD), SMALL); // exactly at boundary — invalid
     }
 
@@ -137,7 +137,7 @@ contract NofaceVaultTest is Test {
 
         bytes32 root = vault.getRoot();
         vm.prank(bob);
-        vm.expectRevert(NofaceVault.NullifierAlreadySpent.selector);
+        vm.expectRevert(VeilVault.NullifierAlreadySpent.selector);
         vault.withdraw(bytes("proof"), keccak256("n1"), root, bob, SMALL, address(0), 0);
     }
 
@@ -145,7 +145,7 @@ contract NofaceVaultTest is Test {
         _deposit(alice, _c(1), SMALL);
 
         vm.prank(bob);
-        vm.expectRevert(NofaceVault.InvalidRoot.selector);
+        vm.expectRevert(VeilVault.InvalidRoot.selector);
         vault.withdraw(
             bytes("proof"),
             keccak256("n1"),
@@ -163,7 +163,7 @@ contract NofaceVaultTest is Test {
         bytes32 root = vault.getRoot();
         // proof says relayer=solver, but msg.sender=bob
         vm.prank(bob);
-        vm.expectRevert(NofaceVault.UnauthorizedRelayer.selector);
+        vm.expectRevert(VeilVault.UnauthorizedRelayer.selector);
         vault.withdraw(bytes("proof"), keccak256("n1"), root, bob, SMALL, solver, 0);
     }
 
@@ -200,7 +200,7 @@ contract NofaceVaultTest is Test {
 
         bytes32 root = vault.getRoot();
         vm.prank(bob);
-        vm.expectRevert(NofaceVault.FeeTooHigh.selector);
+        vm.expectRevert(VeilVault.FeeTooHigh.selector);
         // fee alone exceeds denomination
         vault.withdraw(bytes("proof"), keccak256("n1"), root, bob, SMALL, address(0), SMALL);
     }

@@ -2,9 +2,9 @@
 pragma solidity ^0.8.23;
 
 import "forge-std/Test.sol";
-import "src/core/HonkVerifier.sol";
-import "src/core/NofaceVault.sol";
-import "src/core/BatchManager.sol";
+import "../src/core/HonkVerifier.sol";
+import "../src/core/VeilVault.sol";
+import "../src/core/BatchManager.sol";
 
 // Minimal ERC20 for testing — no dependencies needed.
 contract MockUSDC is Test {
@@ -38,7 +38,7 @@ contract MockUSDC is Test {
 contract BatchManagerTest is Test {
 
     HonkVerifier   verifier;
-    NofaceVault    vault;
+    VeilVault    vault;
     BatchManager   batchManager;
     MockUSDC       usdc;
 
@@ -59,13 +59,16 @@ contract BatchManagerTest is Test {
     address constant RECIPIENT  = address(0x1);
     uint256 constant DENOM      = 100_000_000;
 
-    string constant PROOF_PATH =
-        "/home/robelsocial750/DeFi-core/circuits/target/proof/proof/proof";
+    function _proofPath() internal view returns (string memory) {
+        string memory fromEnv = vm.envOr("VeilFi_PROOF_PATH", string(""));
+        if (bytes(fromEnv).length != 0) return fromEnv;
+        return string.concat(vm.projectRoot(), "/circuits/target/proof/proof/proof");
+    }
 
     function setUp() public {
         usdc        = new MockUSDC();
         verifier    = new HonkVerifier();
-        vault       = new NofaceVault(address(usdc), address(verifier));
+        vault       = new VeilVault(address(usdc), address(verifier));
         batchManager = new BatchManager(address(vault));
     }
 
@@ -96,7 +99,7 @@ contract BatchManagerTest is Test {
     // The vault's permissionless path: relayer==address(0) so no relayer check.
     // msg.sender (BatchManager) receives the fee (fee=0 here so no transfer).
     function test_singleWithdrawalViaBatchManager() public {
-        bytes memory proof = vm.readFileBinary(PROOF_PATH);
+        bytes memory proof = vm.readFileBinary(_proofPath());
 
         // Fund depositor and deposit into vault
         address depositor = address(0xABC);
@@ -127,6 +130,7 @@ contract BatchManagerTest is Test {
             root:          ROOT,
             recipient:     RECIPIENT,
             denomination:  DENOM,
+            relayer:       address(0),
             fee:           0
         });
         intents[1] = BatchManager.Intent({
@@ -135,6 +139,7 @@ contract BatchManagerTest is Test {
             root:          ROOT,
             recipient:     RECIPIENT,
             denomination:  DENOM,
+            relayer:       address(0),
             fee:           0
         });
 
@@ -159,6 +164,7 @@ contract BatchManagerTest is Test {
                 root:          bytes32(uint256(i + 1)),
                 recipient:     address(uint160(i + 1)),
                 denomination:  DENOM,
+                relayer:       address(0),
                 fee:           0
             });
         }

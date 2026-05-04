@@ -27,7 +27,7 @@ fn main(
 
     // fee must be strictly less than denomination to leave something for recipient
     // Noir has no < operator on Field directly; use denomination != fee as minimal guard.
-    // Full range check is enforced on-chain in NofaceVault.
+    // Full range check is enforced on-chain in VeilVault.
 }
 
 fn compute_merkle_root(leaf: Field, path: [Field; 20], indices: [bool; 20]) -> Field {

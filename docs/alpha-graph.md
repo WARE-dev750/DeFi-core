@@ -10,13 +10,13 @@ graph TB
 
     %% --- ACTORS ---
     User(("👤 USER<br>(No ETH/Gas Needed)")):::user
-    Solver[["🤖 SOLVER<br>(Stakes $NOFACE, Pays L2 Gas)"]]:::offchain
+    Solver[["🤖 SOLVER<br>(Stakes $VeilFi, Pays L2 Gas)"]]:::offchain
 
     %% --- LAYER 1: OFF-CHAIN (PRIVACY & INTENTS) ---
     subgraph Layer_OffChain[Layer 1: Off-Chain Privacy & Intent Routing]
         direction TB
         OHTTP[OHTTP Gateway<br>Hides User IP Address]:::offchain
-        SDK[NOFACE SDK<br>Generates Gasless Intent]:::offchain
+        SDK[VeilFi SDK<br>Generates Gasless Intent]:::offchain
         Pool[(Encrypted Intent Pool)]:::offchain
         Prover[Decentralized Prover<br>Generates ZK-Proof]:::offchain
     end
@@ -26,8 +26,8 @@ graph TB
         direction TB
         Batcher[BatchManager.sol<br>Verifies Intent & Reimburses Solver]:::contract
         Verifier[Verifier.sol<br>UltraHonk Proof Check]:::contract
-        Vault[(NofaceVault.sol<br>Under-the-Hood ZK Ledger)]:::contract
-        Hook{NofaceHook.sol<br>TSTORE Routing}:::contract
+        Vault[(VeilFiVault.sol<br>Under-the-Hood ZK Ledger)]:::contract
+        Hook{VeilFiHook.sol<br>TSTORE Routing}:::contract
     end
 
     %% --- ZK CIRCUITS ---
@@ -43,7 +43,7 @@ graph TB
     end
 
     %% --- TOKEN ECONOMICS ---
-    subgraph Layer_Eco [$NOFACE Tokenomics]
+    subgraph Layer_Eco [$VeilFi Tokenomics]
         Burn[Buyback & Burn Vault<br>Deflationary Engine]:::eco
     end
 

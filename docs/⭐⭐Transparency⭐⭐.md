@@ -2,8 +2,8 @@ The Raw Truth
 
 I am writing this file with complete honesty. No marketing talk, no corporate fluff. Just a straightforward look at what this project is and where it’s headed.
 
-What is NOFACE?  
-The main goal of NOFACE is to create a full, private, anonymous economy. I want both investors and everyday users to take part in betting, play-to-earn games, and interactive yield events without having to reveal their entire financial history on the blockchain.
+What is VielFI?  
+The main goal of VielFI is to create a full, private, anonymous economy. I want both investors and everyday users to take part in betting, play-to-earn games, and interactive yield events without having to reveal their entire financial history on the blockchain.
 
 But I also recognize reality. Right now, my focus is on one thing: making the foundational smart contracts solid and ready for launch.
 
@@ -18,7 +18,7 @@ If there’s one thing I value above everything else, it’s security. I would r
 The Legal Side (Dealing with Bad Actors)  
 When people hear "privacy protocol," their first concern is that it may be used by criminals to launder money. I take this seriously.
 
-Here’s my plan: By V2/V3, once we have community support and funding, NOFACE will integrate strict, smart-contract-level blacklisting for high-risk and malicious wallets. If an address is flagged for illegal activity, the system will simply reject them. They won’t be able to trade their crypto in the NOFACE economy.
+Here’s my plan: By V2/V3, once we have community support and funding, VielFI will integrate strict, smart-contract-level blacklisting for high-risk and malicious wallets. If an address is flagged for illegal activity, the system will simply reject them. They won’t be able to trade their crypto in the VielFI economy.
 
 But here’s the one rule I will not break: There will be no centralization.  
 I will never create an "admin key" that can freeze a user’s wallet. No one’s assets will ever be trapped or locked by a central authority. We will block bad actors from entering the system at the smart-contract level, but we (sometimes I say we because I hope to have a team soon) will never compromise the decentralized nature of the protocol.

@@ -12,12 +12,12 @@ interface IHonkVerifier {
     function verify(bytes calldata _proof, bytes32[] calldata _publicInputs) external view returns (bool);
 }
 
-// NofaceVault — core privacy vault.
+// VeilVault — core privacy vault.
 // Architectural pattern: identical to Tornado Cash ETHTornado.sol.
 // Forked primitives: MerkleTreeWithHistory (Tornado Cash), SafeERC20 + Ownable +
 // ReentrancyGuard (OpenZeppelin), HonkVerifier (Aztec/Barretenberg generated).
 // Custom glue: deposit/withdraw business logic, solver fee routing, protocol fee accumulation.
-contract NofaceVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
+contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
 
     using SafeERC20 for IERC20;
 
