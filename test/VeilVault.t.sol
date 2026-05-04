@@ -138,8 +138,8 @@ contract VeilVaultTest is Test {
             )
         );
 
-        uint256 fee1 = (SMALL * vault.FEE_BPS()) / 10_000;
-        uint256 fee2 = (MEDIUM * vault.FEE_BPS()) / 10_000;
+        uint256 fee1 = (SMALL * vault.EXIT_FEE_BPS()) / 10_000;
+        uint256 fee2 = (MEDIUM * vault.EXIT_FEE_BPS()) / 10_000;
 
         assertEq(token.balanceOf(bob), bobBefore + SMALL - fee1 + MEDIUM - fee2);
     }
@@ -165,7 +165,7 @@ contract VeilVaultTest is Test {
             relayers[i] = address(0);
             fees[i] = 0;
             
-            uint256 fee = (SMALL * vault.FEE_BPS()) / 10_000;
+            uint256 fee = (SMALL * vault.EXIT_FEE_BPS()) / 10_000;
             expectedPayout += (SMALL - fee);
         }
 
@@ -217,7 +217,7 @@ contract VeilVaultTest is Test {
     function test_WithdrawReleasesFunds() public {
         _deposit(alice, _c(1), SMALL);
 
-        uint256 protocolFee = (SMALL * vault.FEE_BPS()) / 10_000;
+        uint256 protocolFee = (SMALL * vault.EXIT_FEE_BPS()) / 10_000;
         uint256 bobBefore   = token.balanceOf(bob);
 
         _withdraw(bob, keccak256("n1"), bob, SMALL, address(0), 0);
@@ -301,13 +301,15 @@ contract VeilVaultTest is Test {
 
     function test_VaultSolvencyAfterWithdraw() public {
         _deposit(alice, _c(1), SMALL);
-        assertEq(token.balanceOf(address(vault)), SMALL);
+        uint256 entryFee = (SMALL * vault.ENTRY_FEE_BPS()) / 10_000;
+        assertEq(token.balanceOf(address(vault)), SMALL + entryFee);
 
-        uint256 protocolFee = (SMALL * vault.FEE_BPS()) / 10_000;
+        uint256 exitFee = (SMALL * vault.EXIT_FEE_BPS()) / 10_000;
         _withdraw(bob, keccak256("n1"), bob, SMALL, address(0), 0);
 
         // Pull pattern: protocol fees stay in vault until owner claims
-        assertEq(token.balanceOf(address(vault)), protocolFee);
-        assertEq(vault.accumulatedFees(), protocolFee);
+        assertEq(token.balanceOf(address(vault)), entryFee + exitFee);
+        assertEq(vault.accumulatedExitFees(), exitFee);
+        assertEq(vault.accumulatedEntryFees(), entryFee);
     }
 }

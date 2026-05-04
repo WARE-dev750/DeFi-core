@@ -11,7 +11,7 @@ VielFI Protocol utilizes **Zero-Knowledge (ZK) Wrappers** that operate completel
 
 1.  **The Deposit:** Users deposit transparent assets (e.g., ETH, USDC) into the VielFI Vault.
 2.  **The Internal Ledger:** The protocol issues a private, wrapped version (e.g., **zk-USDC**) entirely under the hood. Users never manage wrapped tokens in their wallets; they simply see their "Private Balance" on the VielFI interface.
-3.  **Gasless Transactions:** Users move or trade these assets by signing digital "ZK-Intents." They **do not need to hold ETH or $VielFI** to pay for gas. The off-chain Solvers pay the network gas fee and automatically deduct the protocol fee (0.3%) directly from the asset being traded.
+3.  **Gasless & Non-Gated:** The protocol is completely non-gated. Users do not need to purchase or hold $VeilFI to use the platform. You can transact using solely the asset you brought (e.g., USDC), paying zero ETH gas.
 
 ## 3. Token Utility & Value Accrual
 $VielFI derives its market value through structural buy-pressure and protocol security mechanics, without forcing retail users to hold it just to transact.
@@ -20,9 +20,10 @@ $VielFI derives its market value through structural buy-pressure and protocol se
 *   To process user Intents and earn execution fees, **Solvers** must lock up and stake a significant amount of $VielFI.
 *   If a Solver attempts to front-run a user or act maliciously off-chain, the protocol mathematically rejects their proof and **slashes** their staked $VielFI. This creates massive institutional demand for the token.
 
-### B. Fee Abstraction & Structural Buy-Pressure
-*   Every time a user trades or unshields, a 0.3% protocol fee is levied invisibly in the asset being traded (e.g., USDC).
-*   The protocol takes a portion of this collected USDC, programmatically **market-buys $VielFI** in the background, and distributes it to the treasury and stakers.
+### B. Whale-Friendly Entry & Exit Fees
+*   Whales do not want to be bled on every single transaction. Therefore, internal operations (swaps, bets, transfers) have a **0% protocol fee**.
+*   **Entry (0.2%):** When a user shields an asset, a 0.2% fee is assessed. Half (0.1%) is distributed to $VeilFI stakers. The other half (0.1%) is used to automatically market-buy and Burn $VeilFI.
+*   **Exit (0.1%):** When a user unshields, a 0.1% fee is routed to the Protocol Treasury.
 
 ### C. Governance & Yield Distribution
 *   $VielFI holders participate in the **VielFI DAO**, voting on fee structures, new "Clean Set" compliance parameters, and treasury management.

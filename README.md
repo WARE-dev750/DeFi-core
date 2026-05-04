@@ -115,12 +115,13 @@ $VielFI is not required to use the protocol. It is the engine that captures prot
 
 **How Value Accrues**
 
-Every transaction through VielFI generates a 0.3% fee split three ways:
+Whales do not want to be bled on every single transaction. Therefore, all internal transactions (swaps, bets, transfers) have a **0% protocol fee**. We only charge on Entry and Exit:
 
-0.3% protocol fee
-├── 0.1% → $VielFI stakers (real yield paid in USDC)
-├── 0.1% → Buyback and Burn (supply decreases permanently)
-└── 0.1% → Protocol Treasury (audits, engineering, legal)
+- **0.2% Entry Fee:**
+  ├── 0.1% → $VielFI stakers (real yield)
+  └── 0.1% → Buyback and Burn (supply decreases permanently)
+- **0.1% Exit Fee:**
+  └── 0.1% → Protocol Treasury (audits, engineering, legal)
 
 **Who Needs $VielFI**
 

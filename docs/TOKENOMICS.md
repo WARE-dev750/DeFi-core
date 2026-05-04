@@ -18,15 +18,15 @@ To ensure long-term stability and prevent market manipulation, all team and inve
 | **Private Investors** | **15%** | 6-Month Cliff; 2-Year Vesting | Raising capital for initial security audits. |
 | **Airdrop & Community**| **10%** | 100% Unlocked at Launch | Bootstrapping initial protocol volume and users. |
 
-## 3. Revenue Model & Gas Economics
-To account for the high computational cost of Zero-Knowledge proof verification, VielFI utilizes a **Hybrid Fee Structure**:
+## 3. Revenue Model & Fees
+To cater to high-net-worth individuals and whales, VeilFI utilizes a **Whale-Friendly Fee Structure**. Internal transactions are completely free of protocol fees. Fees are only assessed upon entering and exiting the platform.
 
-1.  **The Proof Verification Fee (Flat):** A fixed cost (calculated in gas) charged on every shielding transaction to cover the cost of ZK-proof verification on the L2.
-2.  **The Protocol Service Fee (0.3%):** A percentage-based fee charged on the volume of assets being privatized.
-3.  **Revenue Distribution:**
-    *   **50%** distributed to $VielFI stakers as "Real Yield."
-    *   **25%** to the Protocol Treasury for ongoing operations.
-    *   **25%** used for "Buyback-and-Burn" to increase token scarcity.
+1.  **Entry Fee (0.2%):** Charged when an asset enters the platform.
+    *   **0.1%** is used to market-buy and permanently Burn $VeilFI tokens.
+    *   **0.1%** is distributed to $VeilFI stakers as "Real Yield."
+2.  **Exit Fee (0.1%):** Charged when an asset is unshielded and leaves the platform.
+    *   **0.1%** goes directly to the Protocol Treasury.
+3.  **Internal Transactions:** 0%. Whales and power users can trade, swap, and bet infinitely with zero protocol friction.
 
 ## 4. Sybil-Resistant Liquidity Incentives
 To prevent "Whales" from gaming the system by splitting capital into multiple wallets, VielFI uses **Time-Weighted Staking**:

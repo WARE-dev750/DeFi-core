@@ -19,7 +19,8 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
     uint256 public constant DENOM_MEDIUM = 1_000 * 1e6;
     uint256 public constant DENOM_LARGE  = 10_000 * 1e6;
 
-    uint256 public constant FEE_BPS = 30;
+    uint256 public constant ENTRY_FEE_BPS = 20;
+    uint256 public constant EXIT_FEE_BPS = 10;
 
     uint256 public constant SNARK_SCALAR_FIELD =
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
@@ -27,7 +28,8 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
     IERC20  public immutable token;
     address public immutable verifier;
 
-    uint256 public accumulatedFees;
+    uint256 public accumulatedEntryFees;
+    uint256 public accumulatedExitFees;
 
     mapping(bytes32 => bool) public commitmentExists;
     mapping(bytes32 => bool) public nullifierSpent;
@@ -70,8 +72,12 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
         if (uint256(commitment) >= SNARK_SCALAR_FIELD) revert CommitmentOutOfField();
         if (commitmentExists[commitment])              revert CommitmentAlreadyExists();
 
+        uint256 entryFee = (denomination * ENTRY_FEE_BPS) / 10_000;
+        
         commitmentExists[commitment] = true;
-        token.safeTransferFrom(msg.sender, address(this), denomination);
+        token.safeTransferFrom(msg.sender, address(this), denomination + entryFee);
+        accumulatedEntryFees += entryFee;
+        
         uint32 leafIndex = _insert(uint256(commitment));
         emit Deposit(commitment, leafIndex, denomination);
     }
@@ -93,7 +99,7 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
 
         if (relayer != address(0) && msg.sender != relayer) revert UnauthorizedRelayer();
 
-        uint256 protocolFee = (denomination * FEE_BPS) / 10_000;
+        uint256 protocolFee = (denomination * EXIT_FEE_BPS) / 10_000;
         if (fee + protocolFee > denomination) revert FeeTooHigh();
 
         bytes32[] memory publicInputs = new bytes32[](6);
@@ -115,7 +121,7 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
         nullifierSpent[nullifierHash] = true;
 
         uint256 payout = denomination - protocolFee - fee;
-        accumulatedFees += protocolFee;
+        accumulatedExitFees += protocolFee;
 
         if (fee > 0) {
             address feeRecipient = relayer != address(0) ? relayer : msg.sender;
@@ -152,7 +158,7 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
 
             if (args.relayers[i] != address(0) && msg.sender != args.relayers[i]) revert UnauthorizedRelayer();
 
-            uint256 protocolFee = (args.denominations[i] * FEE_BPS) / 10_000;
+            uint256 protocolFee = (args.denominations[i] * EXIT_FEE_BPS) / 10_000;
             if (args.fees[i] + protocolFee > args.denominations[i]) revert FeeTooHigh();
 
             publicInputs[i * 6 + 0] = args.nullifierHashes[i];
@@ -175,7 +181,7 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
             if (nullifierSpent[args.nullifierHashes[i]]) revert NullifierAlreadySpent();
             nullifierSpent[args.nullifierHashes[i]] = true;
 
-            uint256 protocolFee = (args.denominations[i] * FEE_BPS) / 10_000;
+            uint256 protocolFee = (args.denominations[i] * EXIT_FEE_BPS) / 10_000;
             totalProtocolFee += protocolFee;
             uint256 payout = args.denominations[i] - protocolFee - args.fees[i];
 
@@ -188,13 +194,21 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
             emit Withdrawal(args.recipients[i], args.nullifierHashes[i], payout);
         }
 
-        accumulatedFees += totalProtocolFee;
+        accumulatedExitFees += totalProtocolFee;
     }
 
     function claimFees() external onlyOwner {
-        uint256 amount = accumulatedFees;
-        accumulatedFees = 0;
-        token.safeTransfer(owner(), amount);
+        uint256 exitAmount = accumulatedExitFees;
+        accumulatedExitFees = 0;
+        token.safeTransfer(owner(), exitAmount);
+    }
+
+    // Phase 3: Route entry fees to Burn and Stakers
+    function distributeEntryFees() external {
+        uint256 entryAmount = accumulatedEntryFees;
+        accumulatedEntryFees = 0;
+        // Temporary: simply send to owner until DEX router logic is implemented
+        token.safeTransfer(owner(), entryAmount);
     }
 
     function getRoot() external view returns (bytes32) {

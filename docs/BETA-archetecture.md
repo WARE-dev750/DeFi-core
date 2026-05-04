@@ -94,12 +94,12 @@ graph TB
 
     %% ==================== LAYER 7 - TOKEN ECONOMICS ====================
     subgraph L7 ["LAYER 7 — $VeilFi ECONOMIC ENGINE"]
-        FeeCollector["Fee Collector<br>0.20% Shield + 0.10% Unshield<br>Auto-converted to USDC"]:::token
+        FeeCollector["Fee Collector<br>0.20% Entry + 0.10% Exit Fee"]:::token
 
         subgraph FeeSplit ["Fee Distribution"]
-            StakerYield["0.1% → Real Yield to Stakers<br>Paid in USDC"]:::economy
-            BuyBurn["0.1% → Buyback & Burn $VeilFi"]:::token
-            Treasury["0.1% → Protocol Treasury"]:::token
+            StakerYield["0.1% Entry Fee → Yield to Stakers"]:::economy
+            BuyBurn["0.1% Entry Fee → Buyback & Burn $VeilFi"]:::token
+            Treasury["0.1% Exit Fee → Protocol Treasury"]:::token
         end
 
         Staking["StakingContract.sol<br>Lock $VeilFi → Earn yield + voting power"]:::economy
