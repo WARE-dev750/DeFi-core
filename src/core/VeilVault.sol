@@ -4,7 +4,6 @@ pragma solidity ^0.8.23;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-// Fork: OpenZeppelin ReentrancyGuard — audited, no custom primitives.
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {MerkleTreeWithHistory} from "./MerkleTreeWithHistory.sol";
 
@@ -12,34 +11,22 @@ interface IHonkVerifier {
     function verify(bytes calldata _proof, bytes32[] calldata _publicInputs) external view returns (bool);
 }
 
-// VeilVault — core privacy vault.
-// Architectural pattern: identical to Tornado Cash ETHTornado.sol.
-// Forked primitives: MerkleTreeWithHistory (Tornado Cash), SafeERC20 + Ownable +
-// ReentrancyGuard (OpenZeppelin), HonkVerifier (Aztec/Barretenberg generated).
-// Custom glue: deposit/withdraw business logic, solver fee routing, protocol fee accumulation.
 contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
 
     using SafeERC20 for IERC20;
 
-    // Fixed denominations — variable amounts leak depositor identity.
-    uint256 public constant DENOM_SMALL  = 100   * 1e6; // 100  USDC
-    uint256 public constant DENOM_MEDIUM = 1_000 * 1e6; // 1000 USDC
-    uint256 public constant DENOM_LARGE  = 10_000 * 1e6; // 10000 USDC
+    uint256 public constant DENOM_SMALL  = 100   * 1e6;
+    uint256 public constant DENOM_MEDIUM = 1_000 * 1e6;
+    uint256 public constant DENOM_LARGE  = 10_000 * 1e6;
 
-    // 30 bps = 0.3% protocol fee.
     uint256 public constant FEE_BPS = 30;
 
-    // BN254 scalar field upper bound. Commitments must be valid field elements.
     uint256 public constant SNARK_SCALAR_FIELD =
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     IERC20  public immutable token;
     address public immutable verifier;
 
-    // Protocol fees accumulate here. Owner pulls on their own schedule.
-    // Pull pattern prevents DoS if owner address is token-blacklisted.
-    // TODO Phase 3: replace claimFees with permissionless FeeDistributor.sol
-    // that routes to staking pool, buyback-burn, and DAO treasury automatically.
     uint256 public accumulatedFees;
 
     mapping(bytes32 => bool) public commitmentExists;
@@ -56,8 +43,18 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
     error ProofVerificationFailed();
     error UnauthorizedRelayer();
     error FeeTooHigh();
+    error ArrayLengthMismatch();
+    error EmptyBatch();
 
-    // Tree depth 20 = 2^20 = 1,048,576 max deposits. Matches Tornado Cash.
+    struct BatchWithdrawArgs {
+        bytes32[] nullifierHashes;
+        bytes32[] roots;
+        address[] recipients;
+        uint256[] denominations;
+        address[] relayers;
+        uint256[] fees;
+    }
+
     constructor(address _token, address _verifier)
         MerkleTreeWithHistory(20)
         Ownable(msg.sender)
@@ -94,19 +91,11 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
             denomination != DENOM_MEDIUM &&
             denomination != DENOM_LARGE)   revert InvalidDenomination();
 
-        // Relayer exclusivity:
-        // - relayer == address(0): permissionless, msg.sender gets the fee.
-        // - relayer != address(0): only that exact address may submit.
-        //   When BatchManager calls this, user sets relayer = BatchManager address.
-        //   msg.sender == BatchManager == relayer. Passes without any whitelist.
         if (relayer != address(0) && msg.sender != relayer) revert UnauthorizedRelayer();
 
-        // Guard against fee + protocolFee consuming entire denomination.
         uint256 protocolFee = (denomination * FEE_BPS) / 10_000;
         if (fee + protocolFee > denomination) revert FeeTooHigh();
 
-        // Public inputs — order must match circuit main.nr exactly:
-        // nullifier_hash, root, recipient, denomination, relayer, fee
         bytes32[] memory publicInputs = new bytes32[](6);
         publicInputs[0] = nullifierHash;
         publicInputs[1] = root;
@@ -115,8 +104,6 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
         publicInputs[4] = bytes32(uint256(uint160(relayer)));
         publicInputs[5] = bytes32(fee);
 
-        // HonkVerifier reverts on invalid proof internally.
-        // try/catch ensures vault surfaces its own clean error in all cases.
         bool ok;
         try IHonkVerifier(verifier).verify(proof, publicInputs) returns (bool result) {
             ok = result;
@@ -125,14 +112,11 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
         }
         if (!ok) revert ProofVerificationFailed();
 
-        // CEI: mark nullifier spent before any external calls.
         nullifierSpent[nullifierHash] = true;
 
         uint256 payout = denomination - protocolFee - fee;
         accumulatedFees += protocolFee;
 
-        // FIX (Flaw 3): if relayer is address(0), fee goes to msg.sender —
-        // the actual solver who paid gas. Fee is never trapped.
         if (fee > 0) {
             address feeRecipient = relayer != address(0) ? relayer : msg.sender;
             token.safeTransfer(feeRecipient, fee);
@@ -142,8 +126,71 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
         emit Withdrawal(recipient, nullifierHash, payout);
     }
 
-    // Owner pulls accumulated protocol fees.
-    // Phase 3: this becomes a permissionless FeeDistributor.sol call.
+    function batchWithdraw(
+        bytes calldata proof,
+        BatchWithdrawArgs calldata args
+    ) external nonReentrant {
+        uint256 length = args.nullifierHashes.length;
+        if (
+            args.roots.length != length ||
+            args.recipients.length != length ||
+            args.denominations.length != length ||
+            args.relayers.length != length ||
+            args.fees.length != length
+        ) revert ArrayLengthMismatch();
+        if (length == 0) revert EmptyBatch();
+
+        bytes32[] memory publicInputs = new bytes32[](length * 6);
+        uint256 totalProtocolFee = 0;
+
+        for (uint256 i = 0; i < length; i++) {
+            if (!isKnownRoot(uint256(args.roots[i]))) revert InvalidRoot();
+            if (nullifierSpent[args.nullifierHashes[i]]) revert NullifierAlreadySpent();
+            if (args.denominations[i] != DENOM_SMALL &&
+                args.denominations[i] != DENOM_MEDIUM &&
+                args.denominations[i] != DENOM_LARGE) revert InvalidDenomination();
+
+            if (args.relayers[i] != address(0) && msg.sender != args.relayers[i]) revert UnauthorizedRelayer();
+
+            uint256 protocolFee = (args.denominations[i] * FEE_BPS) / 10_000;
+            if (args.fees[i] + protocolFee > args.denominations[i]) revert FeeTooHigh();
+
+            publicInputs[i * 6 + 0] = args.nullifierHashes[i];
+            publicInputs[i * 6 + 1] = args.roots[i];
+            publicInputs[i * 6 + 2] = bytes32(uint256(uint160(args.recipients[i])));
+            publicInputs[i * 6 + 3] = bytes32(args.denominations[i]);
+            publicInputs[i * 6 + 4] = bytes32(uint256(uint160(args.relayers[i])));
+            publicInputs[i * 6 + 5] = bytes32(args.fees[i]);
+        }
+
+        bool ok;
+        try IHonkVerifier(verifier).verify(proof, publicInputs) returns (bool result) {
+            ok = result;
+        } catch {
+            revert ProofVerificationFailed();
+        }
+        if (!ok) revert ProofVerificationFailed();
+
+        for (uint256 i = 0; i < length; i++) {
+            if (nullifierSpent[args.nullifierHashes[i]]) revert NullifierAlreadySpent();
+            nullifierSpent[args.nullifierHashes[i]] = true;
+
+            uint256 protocolFee = (args.denominations[i] * FEE_BPS) / 10_000;
+            totalProtocolFee += protocolFee;
+            uint256 payout = args.denominations[i] - protocolFee - args.fees[i];
+
+            if (args.fees[i] > 0) {
+                address feeRecipient = args.relayers[i] != address(0) ? args.relayers[i] : msg.sender;
+                token.safeTransfer(feeRecipient, args.fees[i]);
+            }
+
+            token.safeTransfer(args.recipients[i], payout);
+            emit Withdrawal(args.recipients[i], args.nullifierHashes[i], payout);
+        }
+
+        accumulatedFees += totalProtocolFee;
+    }
+
     function claimFees() external onlyOwner {
         uint256 amount = accumulatedFees;
         accumulatedFees = 0;

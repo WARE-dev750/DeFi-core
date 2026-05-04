@@ -94,6 +94,100 @@ contract VeilVaultTest is Test {
 
     // ── Withdraw tests ────────────────────────────────────────────────────────
 
+    function test_BatchWithdraw() public {
+        // Deposit twice
+        _deposit(alice, _c(1), SMALL);
+        _deposit(alice, _c(2), MEDIUM);
+
+        bytes32[] memory nullifiers = new bytes32[](2);
+        nullifiers[0] = keccak256("n1");
+        nullifiers[1] = keccak256("n2");
+
+        bytes32[] memory roots = new bytes32[](2);
+        roots[0] = vault.getRoot();
+        roots[1] = vault.getRoot();
+
+        address[] memory recipients = new address[](2);
+        recipients[0] = bob;
+        recipients[1] = bob;
+
+        uint256[] memory denoms = new uint256[](2);
+        denoms[0] = SMALL;
+        denoms[1] = MEDIUM;
+
+        address[] memory relayers = new address[](2);
+        relayers[0] = address(0);
+        relayers[1] = address(0);
+
+        uint256[] memory fees = new uint256[](2);
+        fees[0] = 0;
+        fees[1] = 0;
+
+        uint256 bobBefore = token.balanceOf(bob);
+        
+        vm.prank(bob);
+        vault.batchWithdraw(
+            bytes("proof"),
+            VeilVault.BatchWithdrawArgs(
+                nullifiers,
+                roots,
+                recipients,
+                denoms,
+                relayers,
+                fees
+            )
+        );
+
+        uint256 fee1 = (SMALL * vault.FEE_BPS()) / 10_000;
+        uint256 fee2 = (MEDIUM * vault.FEE_BPS()) / 10_000;
+
+        assertEq(token.balanceOf(bob), bobBefore + SMALL - fee1 + MEDIUM - fee2);
+    }
+
+    function testFuzz_BatchWithdraw(uint256 count) public {
+        count = bound(count, 1, 10); // bound count between 1 and 10
+
+        bytes32[] memory nullifiers = new bytes32[](count);
+        bytes32[] memory roots = new bytes32[](count);
+        address[] memory recipients = new address[](count);
+        uint256[] memory denoms = new uint256[](count);
+        address[] memory relayers = new address[](count);
+        uint256[] memory fees = new uint256[](count);
+
+        uint256 expectedPayout = 0;
+
+        for(uint256 i = 0; i < count; i++) {
+            _deposit(alice, _c(i + 100), SMALL);
+            nullifiers[i] = keccak256(abi.encodePacked("n", i));
+            roots[i] = vault.getRoot();
+            recipients[i] = bob;
+            denoms[i] = SMALL;
+            relayers[i] = address(0);
+            fees[i] = 0;
+            
+            uint256 fee = (SMALL * vault.FEE_BPS()) / 10_000;
+            expectedPayout += (SMALL - fee);
+        }
+
+        uint256 bobBefore = token.balanceOf(bob);
+        
+        vm.prank(bob);
+        vault.batchWithdraw(
+            bytes("proof"),
+            VeilVault.BatchWithdrawArgs(
+                nullifiers,
+                roots,
+                recipients,
+                denoms,
+                relayers,
+                fees
+            )
+        );
+
+        assertEq(token.balanceOf(bob), bobBefore + expectedPayout);
+    }
+
+
     function _deposit(address who, bytes32 commitment, uint256 denom) internal {
         vm.prank(who);
         vault.deposit(commitment, denom);
