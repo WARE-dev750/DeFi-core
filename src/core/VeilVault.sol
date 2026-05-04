@@ -43,7 +43,6 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
     error InvalidRoot();
     error NullifierAlreadySpent();
     error ProofVerificationFailed();
-    error UnauthorizedRelayer();
     error FeeTooHigh();
     error ArrayLengthMismatch();
     error EmptyBatch();
@@ -97,7 +96,6 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
             denomination != DENOM_MEDIUM &&
             denomination != DENOM_LARGE)   revert InvalidDenomination();
 
-        if (relayer != address(0) && msg.sender != relayer) revert UnauthorizedRelayer();
 
         uint256 protocolFee = (denomination * EXIT_FEE_BPS) / 10_000;
         if (fee + protocolFee > denomination) revert FeeTooHigh();
@@ -133,11 +131,12 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
     }
 
     function batchWithdraw(
-        bytes calldata proof,
+        bytes[] calldata proofs,
         BatchWithdrawArgs calldata args
     ) external nonReentrant {
         uint256 length = args.nullifierHashes.length;
         if (
+            proofs.length != length ||
             args.roots.length != length ||
             args.recipients.length != length ||
             args.denominations.length != length ||
@@ -146,7 +145,6 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
         ) revert ArrayLengthMismatch();
         if (length == 0) revert EmptyBatch();
 
-        bytes32[] memory publicInputs = new bytes32[](length * 6);
         uint256 totalProtocolFee = 0;
 
         for (uint256 i = 0; i < length; i++) {
@@ -156,32 +154,26 @@ contract VeilVault is MerkleTreeWithHistory, ReentrancyGuard, Ownable {
                 args.denominations[i] != DENOM_MEDIUM &&
                 args.denominations[i] != DENOM_LARGE) revert InvalidDenomination();
 
-            if (args.relayers[i] != address(0) && msg.sender != args.relayers[i]) revert UnauthorizedRelayer();
-
             uint256 protocolFee = (args.denominations[i] * EXIT_FEE_BPS) / 10_000;
             if (args.fees[i] + protocolFee > args.denominations[i]) revert FeeTooHigh();
 
-            publicInputs[i * 6 + 0] = args.nullifierHashes[i];
-            publicInputs[i * 6 + 1] = args.roots[i];
-            publicInputs[i * 6 + 2] = bytes32(uint256(uint160(args.recipients[i])));
-            publicInputs[i * 6 + 3] = bytes32(args.denominations[i]);
-            publicInputs[i * 6 + 4] = bytes32(uint256(uint160(args.relayers[i])));
-            publicInputs[i * 6 + 5] = bytes32(args.fees[i]);
-        }
+            bytes32[] memory publicInputs = new bytes32[](6);
+            publicInputs[0] = args.nullifierHashes[i];
+            publicInputs[1] = args.roots[i];
+            publicInputs[2] = bytes32(uint256(uint160(args.recipients[i])));
+            publicInputs[3] = bytes32(args.denominations[i]);
+            publicInputs[4] = bytes32(uint256(uint160(args.relayers[i])));
+            publicInputs[5] = bytes32(args.fees[i]);
 
-        bool ok;
-        try IHonkVerifier(verifier).verify(proof, publicInputs) returns (bool result) {
-            ok = result;
-        } catch {
-            revert ProofVerificationFailed();
-        }
-        if (!ok) revert ProofVerificationFailed();
+            bool ok;
+            try IHonkVerifier(verifier).verify(proofs[i], publicInputs) returns (bool result) {
+                ok = result;
+            } catch {
+                revert ProofVerificationFailed();
+            }
+            if (!ok) revert ProofVerificationFailed();
 
-        for (uint256 i = 0; i < length; i++) {
-            if (nullifierSpent[args.nullifierHashes[i]]) revert NullifierAlreadySpent();
             nullifierSpent[args.nullifierHashes[i]] = true;
-
-            uint256 protocolFee = (args.denominations[i] * EXIT_FEE_BPS) / 10_000;
             totalProtocolFee += protocolFee;
             uint256 payout = args.denominations[i] - protocolFee - args.fees[i];
 

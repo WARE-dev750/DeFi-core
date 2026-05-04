@@ -125,9 +125,13 @@ contract VeilVaultTest is Test {
 
         uint256 bobBefore = token.balanceOf(bob);
         
+        bytes[] memory proofs = new bytes[](2);
+        proofs[0] = bytes("proof");
+        proofs[1] = bytes("proof");
+
         vm.prank(bob);
         vault.batchWithdraw(
-            bytes("proof"),
+            proofs,
             VeilVault.BatchWithdrawArgs(
                 nullifiers,
                 roots,
@@ -171,9 +175,14 @@ contract VeilVaultTest is Test {
 
         uint256 bobBefore = token.balanceOf(bob);
         
+        bytes[] memory proofs = new bytes[](count);
+        for(uint256 i = 0; i < count; i++) {
+            proofs[i] = bytes("proof");
+        }
+
         vm.prank(bob);
         vault.batchWithdraw(
-            bytes("proof"),
+            proofs,
             VeilVault.BatchWithdrawArgs(
                 nullifiers,
                 roots,
@@ -251,15 +260,7 @@ contract VeilVaultTest is Test {
         );
     }
 
-    function test_UnauthorizedRelayerReverts() public {
-        _deposit(alice, _c(1), SMALL);
 
-        bytes32 root = vault.getRoot();
-        // proof says relayer=solver, but msg.sender=bob
-        vm.prank(bob);
-        vm.expectRevert(VeilVault.UnauthorizedRelayer.selector);
-        vault.withdraw(bytes("proof"), keccak256("n1"), root, bob, SMALL, solver, 0);
-    }
 
     function test_SolverReceivesFee() public {
         _deposit(alice, _c(1), SMALL);

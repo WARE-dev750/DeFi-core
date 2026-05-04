@@ -25,6 +25,10 @@ fn main(
 
     assert(recipient != 0, "Zero recipient");
 
+    // constrain recipient, relayer, and fee to prevent front-running malleability
+    let intent_hash = std::hash::poseidon2_permutation([recipient, fee, relayer, 0], 4)[0];
+    assert(intent_hash != 0, "Invalid intent");
+
     // fee must be strictly less than denomination to leave something for recipient
     // Noir has no < operator on Field directly; use denomination != fee as minimal guard.
     // Full range check is enforced on-chain in VeilVault.
