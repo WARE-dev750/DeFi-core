@@ -41,7 +41,7 @@ graph TB
             ERC20Vault["Universal ERC-20 Vault<br>Permissionless"]:::vault
         end
 
-        VeilFiVault["VeilFiVault.sol<br>Master State Controller<br>Issues private notes<br>Never knows who owns what"]:::vault
+        VeilFiVault["VeilFiVault.sol<br>Master State Controller<br>Issues private notes<br>Batch Proof Verification ✅"]:::vault
 
         subgraph CryptoMemory ["Cryptographic Memory — BUILT TODAY ✅"]
             Tree["IncrementalTree.sol<br>Poseidon2 + Semaphore Fork<br>Tracks all commitments"]:::done
@@ -73,7 +73,7 @@ graph TB
             SolverC["Institutional Solver<br>High volume"]:::intent
         end
         Slashing["Slashing Contract<br>Automatic penalties"]:::intent
-        BatchManager["BatchManager.sol<br>Atomic batches<br>Partial failure isolation"]:::intent
+        BatchManager["BatchManager.sol<br>Atomic intents bundle<br>Verified in single UltraHonk Proof"]:::intent
     end
 
     %% ==================== LAYER 5 - PRIVATE SWAP ENGINE ====================

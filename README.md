@@ -277,15 +277,15 @@ Administrative powers are held by a 3-of-5 Security Multisig until all audits co
 | Component                            | Status                                            |
 | ------------------------------------ | ------------------------------------------------- |
 | Fixed-Depth MerkleTree + Poseidon2   | ✅ Complete — Native BB Translation                |
-| `VielFIVault.sol`                    | ✅ Complete — 8/8 tests passing                    |
+| `VielFIVault.sol`                    | ✅ Complete — 15/15 tests passing (incl. Fuzz) + Batch Withdraw |
 | `main.nr` ZK Kernel                  | ✅ Complete — real UltraHonk circuit               |
 | `HonkVerifier.sol`                   | ✅ Complete — generated from real verification key |
 | Hash alignment (Poseidon2 ↔ circuit) | ✅ Complete — Test vectors passing                 |
 | Deploy script                        | ✅ Complete — Uses real HonkVerifier               |
 | End-to-end proof integration test    | 🟡 In progress                                    |
 | `swap.nr` / `transfer.nr`            | ⏳ Pending kernel finalization                     |
-| `IntentPool.sol`                     | ⏳ Pending vault                                   |
-| `BatchManager.sol`                   | ⏳ Pending vault                                   |
+| `IntentPool.sol`                     | 🟡 Unblocked — In progress                         |
+| `BatchManager.sol`                   | 🟡 Unblocked — In progress                         |
 | `VielFIHook.sol`                     | ⏳ Pending V1                                      |
 | $VielFI Token                        | ⏳ Pending mainnet                                 |
 | SDK                                  | ⏳ Pending contracts                               |
