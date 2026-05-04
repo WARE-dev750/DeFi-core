@@ -1,68 +1,30 @@
-name: Dump Repo Code (Clean)
+name: Generate Codebase Dump
 
 on:
-  workflow_dispatch:  # Manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
-  dump:
+  dump-codebase:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code (with submodules)
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          fetch-depth: 0
 
-      - name: Install tree
-        run: sudo apt-get update && sudo apt-get install -y tree
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-      - name: Generate super clean code dump
+      - name: Generate Plain Text Dump
+        # Changed --exclude to --ignore and updated include syntax
         run: |
-          TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S UTC")
-          COMMIT_SHA=${{ github.sha }}
-          OUTPUT="repo_dump_$(date +%Y%m%d_%H%M%S).md"
+          npx repomix --output codebase-dump.txt --include "." --ignore "package-lock.json,yarn.lock,*.png,*.jpg,*.pdf,node_modules/**"
 
-          cat > "$OUTPUT" << EOF
-# DeFi-core / NOFACE Protocol - Clean Code Dump
-Generated on: $TIMESTAMP
-Commit: $COMMIT_SHA
-Branch: ${{ github.ref_name }}
-
-## 📁 Full Directory Structure
-\`\`\`bash
-EOF
-
-          tree -I '.git|node_modules|out|cache|broadcast|dist|build|target' -a --dirsfirst >> "$OUTPUT" || true
-          echo '```' >> "$OUTPUT"
-          echo -e "\n## 📄 All Source & Config Files\n" >> "$OUTPUT"
-
-          # Only tracked files → zero junk, zero binaries
-          git ls-files --recurse-submodules | sort | while read -r file; do
-            echo -e "\n\n---\n\n### 📄 File: \`$file\`" >> "$OUTPUT"
-            
-            ext="\${file##*.}"
-            case "\$ext" in
-              sol) lang="solidity" ;;
-              nr)  lang="noir" ;;
-              js)  lang="javascript" ;;
-              ts)  lang="typescript" ;;
-              json) lang="json" ;;
-              toml) lang="toml" ;;
-              md)  lang="markdown" ;;
-              sh)  lang="bash" ;;
-              yml|yaml) lang="yaml" ;;
-              *)   lang="text" ;;
-            esac
-
-            echo "\`\`\`\${lang}" >> "$OUTPUT"
-            cat "\$file" >> "$OUTPUT" 2>/dev/null || echo "# Could not read file" >> "$OUTPUT"
-            echo -e "\`\`\`\n" >> "$OUTPUT"
-          done
-
-          echo "✅ Dump complete → $OUTPUT"
-
-      - name: Upload clean dump as artifact
+      - name: Upload Dump as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NOFACE-clean-code-dump
-          path: repo_dump_*.md
-          retention-days: 30
+          name: full-project-context
+          path: codebase-dump.txt
+          retention-days: 1
