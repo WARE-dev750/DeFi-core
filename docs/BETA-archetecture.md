@@ -66,14 +66,14 @@ graph TB
 
     %% ==================== LAYER 4 - INTENT ENGINE ====================
     subgraph L4 ["LAYER 4 — INTENT ENGINE (Gasless Execution)"]
-        IntentPool["IntentPool.sol<br>Encrypted intents + signatures<br>Nonce + deadline protection"]:::intent
+        OffChainIntents["Off-Chain Intent Discovery<br>P2P Gossip Network<br>Zero-Gas intent propagation"]:::intent
         subgraph Solvers ["Solver Network"]
             SolverA["Solver A<br>Stakes $VeilFi"]:::intent
             SolverB["Solver B<br>Competes for intents"]:::intent
             SolverC["Institutional Solver<br>High volume"]:::intent
         end
         Slashing["Slashing Contract<br>Automatic penalties"]:::intent
-        BatchManager["BatchManager.sol<br>Atomic intents bundle<br>Verified in single UltraHonk Proof"]:::intent
+        
     end
 
     %% ==================== LAYER 5 - PRIVATE SWAP ENGINE ====================
@@ -119,7 +119,7 @@ graph TB
 
     %% Metadata
     OHTTP --> SDK
-    SDK --> IntentPool
+    SDK --> OffChainIntents
     SDK --> NoteDisc
 
     %% Vault
@@ -133,12 +133,12 @@ graph TB
     Kernel --> SwapNR & TransferNR & BetNR & WithdrawNR & CleanSet
     CleanSet --> PrivacyOracle
     Kernel --> Verifier
-    Verifier --> BatchManager
+    
 
     %% Intent
-    IntentPool --> Solvers
-    Solvers --> Slashing & BatchManager
-    BatchManager --> VeilFiVault
+    OffChainIntents --> Solvers
+    Solvers --> Slashing\n    Solvers --> VeilFiVault
+    
 
     %% Swap / Hook
     VeilFiVault --> Hook
