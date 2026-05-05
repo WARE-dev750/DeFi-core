@@ -13,14 +13,13 @@
 
 pragma solidity ^0.8.23;
 
-import {BaseHook} from "v4-periphery/src/base/hooks/BaseHook.sol";
-import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
-import {Hooks} from "v4-core/src/libraries/Hooks.sol";
-import {PoolKey} from "v4-core/src/types/PoolKey.sol";
-import {PoolId, PoolIdLibrary} from "v4-core/src/types/PoolId.sol";
-import {Currency, CurrencyLibrary} from "v4-core/src/types/Currency.sol";
-import {BalanceDelta} from "v4-core/src/types/BalanceDelta.sol";
-import {TickMath} from "v4-core/src/libraries/TickMath.sol";
+import {IPoolManager} from "v4-core/interfaces/IPoolManager.sol";
+import {IHooks} from "v4-core/interfaces/IHooks.sol";
+import {PoolKey} from "v4-core/types/PoolKey.sol";
+import {PoolId, PoolIdLibrary} from "v4-core/types/PoolId.sol";
+import {Currency, CurrencyLibrary} from "v4-core/types/Currency.sol";
+import {BalanceDelta} from "v4-core/types/BalanceDelta.sol";
+import {BeforeSwapDelta} from "v4-core/types/BeforeSwapDelta.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -39,10 +38,13 @@ interface IUltraHonkVerifier {
 /// @title VeilHook
 /// @notice Uniswap v4 hook enabling private swaps through VeilCore vault
 /// @dev All swaps are gasless for users - solvers pay gas and earn fees
-contract VeilHook is BaseHook {
+/// @dev Implements IHooks directly instead of using BaseHook to minimize dependencies
+contract VeilHook is IHooks {
     using PoolIdLibrary for PoolKey;
     using CurrencyLibrary for Currency;
     using SafeERC20 for IERC20;
+    
+    IPoolManager public immutable poolManager;
 
     // ── Constants ────────────────────────────────────────────────────────────
     uint256 public constant SNARK_SCALAR_FIELD =
@@ -109,25 +111,17 @@ contract VeilHook is BaseHook {
         IPoolManager _poolManager,
         address _vault,
         address _verifier
-    ) BaseHook(_poolManager) {
+    ) {
+        poolManager = _poolManager;
         vault = IVeilVault(_vault);
         verifier = IUltraHonkVerifier(_verifier);
     }
-
-    // ── Hook Permissions ───────────────────────────────────────────────────────
-    function getHookPermissions() public pure override returns (Hooks.Permissions memory) {
-        return Hooks.Permissions({
-            beforeInitialize: false,
-            afterInitialize: false,
-            beforeAddLiquidity: false,
-            afterAddLiquidity: false,
-            beforeRemoveLiquidity: false,
-            afterRemoveLiquidity: false,
-            beforeSwap: true,    // Critical: verify proof before swap
-            afterSwap: true,     // Deposit output to vault
-            beforeDonate: false,
-            afterDonate: false
-        });
+    
+    /// @notice Returns the hook's permissions bitmap for Uniswap v4
+    function getHookPermissions() external pure returns (uint160) {
+        // Only beforeSwap and afterSwap enabled
+        // Hook permission bits: beforeSwap = bit 6, afterSwap = bit 7
+        return uint160(0x00000000000000000000000000000000000000C0);
     }
 
     // ── Admin ──────────────────────────────────────────────────────────────────
@@ -135,7 +129,7 @@ contract VeilHook is BaseHook {
         // In production: add access control
         PoolId poolId = key.toId();
         authorizedPools[poolId] = true;
-        emit PoolAuthorized(poolId, address(key.currency0), address(key.currency1));
+        emit PoolAuthorized(poolId, Currency.unwrap(key.currency0), Currency.unwrap(key.currency1));
     }
 
     // ── Core Hook: Before Swap ─────────────────────────────────────────────────
@@ -146,7 +140,7 @@ contract VeilHook is BaseHook {
         PoolKey calldata key,
         IPoolManager.SwapParams calldata params,
         bytes calldata hookData
-    ) external override returns (bytes4, uint24) {
+    ) external returns (bytes4, BeforeSwapDelta, uint24) {
         // Only PoolManager can call
         if (msg.sender != address(poolManager)) revert InvalidProof();
 
@@ -190,8 +184,8 @@ contract VeilHook is BaseHook {
         // 8. Mark nullifier spent (prevents replay)
         swapNullifierSpent[intent.nullifierHash] = true;
 
-        // Return selector and optional fee (0 = no hook fee for now)
-        return (this.beforeSwap.selector, 0);
+        // Return selector, no delta modification, no hook fee
+        return (this.beforeSwap.selector, BeforeSwapDelta.wrap(0), 0);
     }
 
     // ── Core Hook: After Swap ──────────────────────────────────────────────────
@@ -203,7 +197,7 @@ contract VeilHook is BaseHook {
         IPoolManager.SwapParams calldata params,
         BalanceDelta delta,
         bytes calldata hookData
-    ) external override returns (bytes4, int128) {
+    ) external returns (bytes4, int128) {
         (SwapIntent memory intent, ) = abi.decode(hookData, (SwapIntent, bytes));
 
         // Calculate actual output from delta
@@ -226,7 +220,8 @@ contract VeilHook is BaseHook {
         poolManager.take(outputCurrency, address(this), outputAmount);
 
         // Approve vault to spend output tokens
-        IERC20(intent.tokenOut).safeApprove(address(vault), outputAmount);
+        // Use approve since we know the starting allowance is 0 (fresh tokens from swap)
+        IERC20(intent.tokenOut).approve(address(vault), outputAmount);
 
         // Deposit output to vault as new commitment
         // User must have generated outputCommitment with correct amount
@@ -261,12 +256,15 @@ contract VeilHook is BaseHook {
         bool zeroForOne = Currency.unwrap(key.currency0) == intent.tokenIn;
 
         // Build swap params
+        // Price limits: MIN = 4295128739 + 1, MAX = 1461446703485210103287273052203988822378723970341 - 1
+        uint160 sqrtPriceLimitX96 = zeroForOne 
+            ? 4295128740  // MIN_SQRT_RATIO + 1
+            : 1461446703485210103287273052203988822378723970340; // MAX_SQRT_RATIO - 1
+            
         IPoolManager.SwapParams memory params = IPoolManager.SwapParams({
             zeroForOne: zeroForOne,
             amountSpecified: int256(intent.amountIn), // Exact input
-            sqrtPriceLimitX96: zeroForOne 
-                ? TickMath.MIN_SQRT_RATIO + 1 
-                : TickMath.MAX_SQRT_RATIO - 1
+            sqrtPriceLimitX96: sqrtPriceLimitX96
         });
 
         // Execute swap through PoolManager
@@ -282,5 +280,38 @@ contract VeilHook is BaseHook {
 
     function isPoolAuthorized(PoolId poolId) external view returns (bool) {
         return authorizedPools[poolId];
+    }
+
+    // ── IHooks Interface: Stub implementations ─────────────────────────────────
+    function beforeInitialize(address, PoolKey calldata, uint160) external pure returns (bytes4) {
+        return IHooks.beforeInitialize.selector;
+    }
+    
+    function afterInitialize(address, PoolKey calldata, uint160, int24) external pure returns (bytes4) {
+        return IHooks.afterInitialize.selector;
+    }
+    
+    function beforeAddLiquidity(address, PoolKey calldata, IPoolManager.ModifyLiquidityParams calldata, bytes calldata) external pure returns (bytes4) {
+        return IHooks.beforeAddLiquidity.selector;
+    }
+    
+    function afterAddLiquidity(address, PoolKey calldata, IPoolManager.ModifyLiquidityParams calldata, BalanceDelta, BalanceDelta, bytes calldata) external pure returns (bytes4, BalanceDelta) {
+        return (IHooks.afterAddLiquidity.selector, BalanceDelta.wrap(0));
+    }
+    
+    function beforeRemoveLiquidity(address, PoolKey calldata, IPoolManager.ModifyLiquidityParams calldata, bytes calldata) external pure returns (bytes4) {
+        return IHooks.beforeRemoveLiquidity.selector;
+    }
+    
+    function afterRemoveLiquidity(address, PoolKey calldata, IPoolManager.ModifyLiquidityParams calldata, BalanceDelta, BalanceDelta, bytes calldata) external pure returns (bytes4, BalanceDelta) {
+        return (IHooks.afterRemoveLiquidity.selector, BalanceDelta.wrap(0));
+    }
+    
+    function beforeDonate(address, PoolKey calldata, uint256, uint256, bytes calldata) external pure returns (bytes4) {
+        return IHooks.beforeDonate.selector;
+    }
+    
+    function afterDonate(address, PoolKey calldata, uint256, uint256, bytes calldata) external pure returns (bytes4) {
+        return IHooks.afterDonate.selector;
     }
 }
