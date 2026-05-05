@@ -1,3 +1,6 @@
+[workspace]
+members = ["kernel", "swap", "transfer"]
+
 [package]
 name = "noface_kernel"
 type = "bin"
