@@ -20,8 +20,8 @@ $VielFI derives its market value through structural buy-pressure and protocol se
 *   To process user Intents and earn execution fees, **Solvers** must lock up and stake a significant amount of $VielFI.
 *   If a Solver attempts to front-run a user or act maliciously off-chain, the protocol mathematically rejects their proof and **slashes** their staked $VielFI. This creates massive institutional demand for the token.
 
-### B. Whale-Friendly Entry & Exit Fees
-*   Whales do not want to be bled on every single transaction. Therefore, internal operations (swaps, bets, transfers) have a **0% protocol fee**.
+### B. Liquidity Provider-Friendly Entry & Exit Fees
+*   Liquidity providers do not want to be charged on every single transaction. Therefore, internal operations (swaps, bets, transfers) have a **0% protocol fee**.
 *   **Entry (0.2%):** When a user shields an asset, a 0.2% fee is assessed. Half (0.1%) is distributed to $VeilFI stakers. The other half (0.1%) is used to automatically market-buy and Burn $VeilFI.
 *   **Exit (0.1%):** When a user unshields, a 0.1% fee is routed to the Protocol Treasury.
 
@@ -34,7 +34,7 @@ To ensure institutional-grade trust and prevent market manipulation, the total s
 
 | Allocation | Percentage | Vesting Schedule | Purpose |
 | :--- | :--- | :--- | :--- |
-| **Liquidity Mining** | **40%** | 5-Year Linear | Incentivizing "Whale" liquidity providers. |
+| **Liquidity Mining** | **40%** | 5-Year Linear | Incentivizing liquidity providers. |
 | **Protocol Treasury** | **20%** | 3-Year Linear | Funding for audits, legal, and R&D. |
 | **Team & Founders** | **15%** | 1-Year Cliff; 4-Year Linear | Long-term commitment from core developers. |
 | **Private Investors** | **15%** | 6-Month Cliff; 2-Year Linear | Initial capital for Tier-1 security audits. |
@@ -46,7 +46,7 @@ To ensure institutional-grade trust and prevent market manipulation, the total s
 *   A dedicated percentage of every transaction fee is used by the protocol to market-buy $VielFI tokens and permanently "Burn" them (sending them to the `0x00...` address).
 *   Because $VielFI is freely tradable on public DEXs, this creates continuous **deflationary pressure** where the total supply of the token decreases as the protocol gains adoption, inherently raising the value of the remaining supply.
 
-### B. The "Whale" Multiplier
+### B. The Liquidity Provider Multiplier
 *   Liquidity providers who hold and stake a minimum threshold of $VielFI receive a "Multiplier" on their liquidity mining rewards.
-*   This encourages large capital holders to maintain a significant position in the $VielFI token to maximize their returns, heavily reducing open-market sell pressure.
+*   This encourages capital holders to maintain a significant position in the $VielFI token to maximize their returns, heavily reducing open-market sell pressure.
 

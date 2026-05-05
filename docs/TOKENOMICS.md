@@ -19,17 +19,17 @@ To ensure long-term stability and prevent market manipulation, all team and inve
 | **Airdrop & Community**| **10%** | 100% Unlocked at Launch | Bootstrapping initial protocol volume and users. |
 
 ## 3. Revenue Model & Fees
-To cater to high-net-worth individuals and whales, VeilFI utilizes a **Whale-Friendly Fee Structure**. Internal transactions are completely free of protocol fees. Fees are only assessed upon entering and exiting the platform.
+To cater to high-net-worth individuals and liquidity providers, VeilFI utilizes a **Liquidity Provider-Friendly Fee Structure**. Internal transactions are completely free of protocol fees. Fees are only assessed upon entering and exiting the platform.
 
 1.  **Entry Fee (0.2%):** Charged when an asset enters the platform.
     *   **0.1%** is used to market-buy and permanently Burn $VeilFI tokens.
     *   **0.1%** is distributed to $VeilFI stakers as "Real Yield."
 2.  **Exit Fee (0.1%):** Charged when an asset is unshielded and leaves the platform.
     *   **0.1%** goes directly to the Protocol Treasury.
-3.  **Internal Transactions:** 0%. Whales and power users can trade, swap, and bet infinitely with zero protocol friction.
+3.  **Internal Transactions:** 0%. Liquidity providers and power users can trade, swap, and bet infinitely with zero protocol friction.
 
 ## 4. Sybil-Resistant Liquidity Incentives
-To prevent "Whales" from gaming the system by splitting capital into multiple wallets, VielFI uses **Time-Weighted Staking**:
+To prevent liquidity providers from gaming the system by splitting capital into multiple wallets, VielFI uses **Time-Weighted Staking**:
 
 *   **The Multiplier:** Liquidity rewards are not based solely on the amount of capital. They are multiplied based on the **duration** the capital has been locked in the pool.
 *   **Governance Locking:** Users who lock $VielFI for longer periods (e.g., 6 months to 2 years) receive higher voting power and a larger share of the protocol revenue.

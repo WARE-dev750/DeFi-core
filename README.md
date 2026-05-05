@@ -292,5 +292,3 @@ Administrative powers are held by a 3-of-5 Security Multisig until all audits co
 
 
 ---
-
-*Built by a 15-year-old. Seriously.*
