@@ -2,11 +2,11 @@
 pragma solidity ^0.8.27;
 
 import {Script, console} from "forge-std/Script.sol";
-import {VeilVault} from "src/core/VeilVault.sol";
-import {HonkVerifier} from "src/core/HonkVerifier.sol";
+import {ERC20VeilCore} from "src/core/ERC20VeilCore.sol";
+import {HonkVerifier}  from "src/core/HonkVerifier.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-// Mock USDC for testnet only -- replace with real USDC address on mainnet
+// Mock USDC for testnet only — replace with real USDC address on mainnet.
 contract TestUSDC is ERC20 {
     constructor() ERC20("USD Coin", "USDC") {
         _mint(msg.sender, 10_000_000 * 1e6);
@@ -18,27 +18,24 @@ contract DeployVeilFi is Script {
     function run() external {
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
         address deployer    = vm.addr(deployerKey);
-
         console.log("Deploying from:", deployer);
 
         vm.startBroadcast(deployerKey);
 
-        // Testnet only -- swap for real USDC on mainnet
+        // Testnet only — swap for real USDC on mainnet.
         TestUSDC usdc = new TestUSDC();
-        console.log("MockUSDC deployed:    ", address(usdc));
+        console.log("MockUSDC deployed:     ", address(usdc));
 
-        // HonkVerifier has no constructor args -- constants are hardcoded
-        // via BaseZKHonkVerifier(N, LOG_N, VK_HASH, NUMBER_OF_PUBLIC_INPUTS)
-        // VK_HASH: 0x18fedb63ef8554a9d6a700bbd07a84266b9953b2d63a9f6f93d4521b16764689
-        // Circuit: circuits/src/kernel/main.nr
+        // HonkVerifier: constants hardcoded via BaseZKHonkVerifier.
+        // VK hash (circuit: circuits/src/kernel/main.nr):
+        //   0x18fedb63ef8554a9d6a700bbd07a84266b9953b2d63a9f6f93d4521b16764689
         HonkVerifier verifier = new HonkVerifier();
-        console.log("HonkVerifier deployed:", address(verifier));
+        console.log("HonkVerifier deployed: ", address(verifier));
 
-        VeilVault vault = new VeilVault(
-            address(usdc),
-            address(verifier)
-        );
-        console.log("VeilVault deployed: ", address(vault));
+        // One vault instance. In production, deploy multiple instances
+        // (one per denomination) to further anonymise the anonymity set.
+        ERC20VeilCore vault = new ERC20VeilCore(address(verifier), address(usdc));
+        console.log("ERC20VeilCore deployed:", address(vault));
 
         vm.stopBroadcast();
 
