@@ -23,8 +23,9 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {IPoolManager} from "v4-core/interfaces/IPoolManager.sol";
 import {PoolKey} from "v4-core/types/PoolKey.sol";
 import {Currency, CurrencyLibrary} from "v4-core/types/Currency.sol";
-import {BalanceDelta} from "v4-core/types/BalanceDelta.sol";
+import {BalanceDelta, toBalanceDelta} from "v4-core/types/BalanceDelta.sol";
 import {TickMath} from "v4-core/libraries/TickMath.sol";
+import {PoolSwapTest} from "v4-core/test/PoolSwapTest.sol";
 
 /// @title FeeManager
 /// @notice Collects fees from vault deposits/withdrawals, swaps them for $VielFI
@@ -75,6 +76,7 @@ contract FeeManager is Ownable, ReentrancyGuard {
     error BelowThreshold();
     error Paused();
     error Unauthorized();
+    error SwapFailed();
     
     // ── Modifiers ───────────────────────────────────────────────────────────
     modifier whenNotPaused() {
@@ -162,52 +164,100 @@ contract FeeManager is Ownable, ReentrancyGuard {
     /// @notice Execute buyback when threshold reached. Anyone can call (public good).
     /// @param token The fee token to swap (e.g., USDC)
     /// @param poolKey The Uniswap v4 pool for token -> VielFI
+    /// @param zeroForOne True if swapping token0 for token1
+    /// @param sqrtPriceLimitX96 Price limit for the swap (use TickMath.MAX_SQRT_PRICE-1 or MIN+1)
+    /// @dev Uses Uniswap v4 PoolManager.swap() with callback settlement
     function executeBuyback(
         address token,
-        PoolKey calldata poolKey
+        PoolKey calldata poolKey,
+        bool zeroForOne,
+        uint160 sqrtPriceLimitX96
     ) external whenNotPaused checkRateLimit nonReentrant {
         uint256 balance = entryFeeBalance[token];
         if (balance < BUYBACK_THRESHOLD) revert BelowThreshold();
         
-        // Reset balance (sweep all)
-        entryFeeBalance[token] = 0;
-        
-        // Approve PoolManager
-        IERC20(token).approve(address(poolManager), balance);
-        
-        // Execute swap via PoolManager (simplified - actual implementation needs callback)
-        // For now: external swap using direct transfer pattern
-        // In production: Use a DEX aggregator or v4 swap through a solver
-        
-        // Placeholder: In production, integrate with actual v4 swap
-        // This would call poolManager.swap() with appropriate parameters
-        
-        // For this implementation, we'll simulate the distribution
-        // In production, the actual swap would happen here
+        // Record balance before swap
         uint256 veilBalanceBefore = veilToken.balanceOf(address(this));
         
-        // External swap would happen here
-        // uint256 veilReceived = _executeV4Swap(token, balance, poolKey);
+        // Reset fee balance (we're sweeping it all)
+        entryFeeBalance[token] = 0;
         
-        // Placeholder calculation (actual implementation needs v4 integration)
-        uint256 veilReceived = veilBalanceBefore; // Replace with actual swap result
+        // Approve PoolManager to spend our tokens
+        IERC20(token).approve(address(poolManager), balance);
         
-        if (veilReceived > 0) {
-            // Split: 50% stake, 50% burn
-            uint256 half = veilReceived / 2;
+        // Prepare swap parameters
+        // amountSpecified: positive = exact input, negative = exact output
+        IPoolManager.SwapParams memory params = IPoolManager.SwapParams({
+            zeroForOne: zeroForOne,
+            amountSpecified: int256(balance), // Exact input
+            sqrtPriceLimitX96: sqrtPriceLimitX96
+        });
+        
+        // Encode callback data: token to settle, amount
+        bytes memory hookData = abi.encode(token, balance);
+        
+        // Execute swap via PoolManager
+        // This triggers the unlock callback pattern where we settle the swap
+        try poolManager.swap(poolKey, params, hookData) returns (BalanceDelta delta) {
+            // Delta represents the token amounts from the pool's perspective
+            // delta.amount0() > 0 means pool received token0
+            // delta.amount1() > 0 means pool received token1
             
-            // Send to staking
-            if (stakingContract != address(0)) {
-                veilToken.safeTransfer(stakingContract, half);
+            // Calculate how much VielFI we received
+            // If zeroForOne=true: we gave token0, got token1
+            // If zeroForOne=false: we gave token1, got token0
+            uint256 veilReceived = veilToken.balanceOf(address(this)) - veilBalanceBefore;
+            
+            if (veilReceived > 0) {
+                // Split: 50% stake, 50% burn
+                uint256 half = veilReceived / 2;
+                
+                // Send to staking
+                if (stakingContract != address(0)) {
+                    veilToken.safeTransfer(stakingContract, half);
+                }
+                
+                // Burn the rest
+                if (burnAddress != address(0)) {
+                    veilToken.safeTransfer(burnAddress, half);
+                }
+                
+                emit BuybackExecuted(token, balance, veilReceived, half, half);
             }
             
-            // Burn the rest
-            if (burnAddress != address(0)) {
-                veilToken.safeTransfer(burnAddress, half);
-            }
-            
-            emit BuybackExecuted(token, balance, veilReceived, half, half);
+        } catch {
+            // If swap fails, restore the fee balance so it can be retried
+            entryFeeBalance[token] = balance;
+            revert SwapFailed();
         }
+    }
+    
+    /// @notice Callback from PoolManager to settle the swap
+    /// @dev This is called by PoolManager during the swap
+    /// @param delta The balance change from the swap
+    /// @param data Encoded token address and amount
+    /// @return The bytes return (empty for this implementation)
+    function afterSwap(
+        address,
+        PoolKey calldata,
+        IPoolManager.SwapParams calldata,
+        BalanceDelta delta,
+        bytes calldata data
+    ) external returns (bytes4) {
+        require(msg.sender == address(poolManager), "Only PoolManager");
+        
+        (address token, uint256 amount) = abi.decode(data, (address, uint256));
+        
+        // Settle with PoolManager - transfer tokens to the pool
+        // The delta tells us how much we owe / are owed
+        // settle() is called after the swap to pay what we owe to the pool
+        if (delta.amount0() > 0 || delta.amount1() > 0) {
+            // We owe tokens to the pool - transfer them
+            // settle() settles all positive deltas for this contract
+            poolManager.settle();
+        }
+        
+        return this.afterSwap.selector;
     }
     
     /// @notice Sweep exit fees to vesting treasury. Callable by anyone.
