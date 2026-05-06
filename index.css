@@ -1,199 +1,322 @@
 :root {
-    --black: #000000;
-    --dark-grey: #0a0a0a;
-    --cyan: #00f2ff;
-    --cyan-dim: rgba(0, 242, 255, 0.1);
-    --font-header: 'Space Grotesk', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
+    --bg: #000000;
+    --card-bg: #0a0a0a;
+    --accent: #00f2ff;
+    --accent-dark: #0066ff;
+    --text-main: #ffffff;
+    --text-dim: #888888;
+    --border: rgba(255, 255, 255, 0.08);
+    --font-ui: 'Inter', sans-serif;
+    --font-heading: 'Outfit', sans-serif;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-    background-color: var(--black);
-    color: white;
-    font-family: var(--font-header);
-    overflow: hidden;
-    height: 100vh;
+    background-color: var(--bg);
+    color: var(--text-main);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
 }
 
-#shieldCanvas {
+/* Background Refinement */
+.background-grain {
     position: fixed;
-    top: 0; left: 0;
-    z-index: -2;
-}
-
-.overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.8) 100%);
-    z-index: -1;
-}
-
-.noise {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    top: 0; left: 0; width: 100%; height: 100%;
     background-image: url('https://grainy-gradients.vercel.app/noise.svg');
-    opacity: 0.05;
+    opacity: 0.03;
     pointer-events: none;
     z-index: 100;
 }
 
-nav {
+.ambient-glow {
+    position: fixed;
+    top: -20%; right: -10%; width: 60%; height: 60%;
+    background: radial-gradient(circle, rgba(0, 242, 255, 0.05) 0%, transparent 70%);
+    filter: blur(100px);
+    z-index: -1;
+}
+
+/* Nav */
+.nav-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem 3rem;
-    border-bottom: 1px solid var(--cyan-dim);
-    backdrop-filter: blur(10px);
+    padding: 2.5rem 5%;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
-.brand { font-size: 1.5rem; font-weight: 700; letter-spacing: 3px; }
-.brand span { color: var(--cyan); }
-
-.status-bar { display: flex; gap: 2rem; align-items: center; font-family: var(--font-mono); font-size: 0.8rem; }
-.status-bar span { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
-
-#connectBtn {
-    background: transparent;
-    border: 1px solid var(--cyan);
-    color: var(--cyan);
-    padding: 0.5rem 1.5rem;
-    font-family: var(--font-mono);
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-#connectBtn:hover {
-    background: var(--cyan);
-    color: var(--black);
-    box-shadow: 0 0 20px var(--cyan);
-}
-
-.dashboard {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    height: calc(100vh - 80px);
-}
-
-.side-panel {
-    padding: 3rem;
-    border-right: 1px solid var(--cyan-dim);
-}
-
-.stat-card {
-    margin-bottom: 3rem;
-}
-
-.stat-card label {
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    color: #555;
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-.stat-card .value {
+.logo {
+    font-family: var(--font-heading);
     font-size: 1.5rem;
     font-weight: 700;
+    letter-spacing: 0.1em;
 }
 
-.action-panel {
-    padding: 3rem 10%;
+.logo span { color: var(--accent); }
+
+.nav-right { display: flex; align-items: center; gap: 2rem; }
+
+.protocol-version {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+}
+
+.btn-connect {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 0.6rem 1.2rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-connect:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Hero */
+.hero {
+    padding: 8rem 5% 4rem;
+    text-align: center;
+}
+
+.hero h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    margin-bottom: 2rem;
+}
+
+.hero h1 span {
+    background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.sub-text {
+    color: var(--text-dim);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Vault Card */
+.app-container {
+    padding: 4rem 5% 10rem;
     display: flex;
-    flex-direction: column;
+    justify-content: center;
 }
 
-.tabs {
+.vault-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    width: 100%;
+    max-width: 480px;
+    padding: 2.5rem;
+    position: relative;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+}
+
+.card-header {
     display: flex;
-    gap: 2rem;
-    margin-bottom: 3rem;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
 }
 
-.tab {
+.vault-id { font-size: 0.65rem; color: var(--text-dim); font-family: monospace; }
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent);
+    animation: blink 2s infinite;
+}
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.card-tabs {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.tab-link {
     background: transparent;
     border: none;
-    color: #555;
-    font-family: var(--font-mono);
-    font-size: 1.2rem;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding-bottom: 1rem;
     cursor: pointer;
-    padding-bottom: 0.5rem;
-    transition: 0.3s;
+    transition: 0.2s;
+    position: relative;
 }
 
-.tab.active {
-    color: var(--cyan);
-    border-bottom: 2px solid var(--cyan);
+.tab-link.active {
+    color: var(--text-main);
 }
 
-.tab-content h2 {
-    font-size: 3rem;
-    margin-bottom: 2rem;
-    letter-spacing: -2px;
+.tab-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; width: 100%; height: 2px;
+    background: var(--accent);
 }
 
-.input-group {
-    margin-bottom: 2rem;
-}
+.input-stack { display: flex; flex-direction: column; gap: 1.5rem; }
 
 .input-group label {
     display: block;
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    color: #555;
-    margin-bottom: 0.5rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    margin-bottom: 0.8rem;
+    letter-spacing: 0.1em;
 }
 
-select, .denom-selector {
-    background: var(--dark-grey);
-    border: 1px solid #222;
-    color: white;
+.select-trigger {
+    background: #111;
+    border: 1px solid var(--border);
     padding: 1rem;
-    width: 100%;
-    font-size: 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
-.denom-selector {
+.denom-grid {
     display: flex;
-    gap: 1px;
-    padding: 0;
+    gap: 0.5rem;
 }
 
-.denom {
+.denom-btn {
     flex: 1;
-    background: var(--dark-grey);
-    border: none;
-    color: white;
-    padding: 1rem;
+    background: #111;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 600;
     cursor: pointer;
+    transition: 0.2s;
 }
 
-.denom.active {
-    background: var(--cyan);
-    color: var(--black);
-    font-weight: 700;
+.denom-btn.active {
+    border-color: var(--accent);
+    color: var(--text-main);
+    background: rgba(0, 242, 255, 0.05);
 }
 
-.execute-btn {
-    background: white;
-    color: black;
+/* Visualizer */
+.vault-visual {
+    height: 120px;
+    margin: 2.5rem 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.outer-ring {
+    position: absolute;
+    width: 100px; height: 100px;
+    border: 1px dashed var(--border);
+    border-radius: 50%;
+    animation: rotate 20s linear infinite;
+}
+
+.inner-circle {
+    position: absolute;
+    width: 60px; height: 60px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    opacity: 0.2;
+}
+
+@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.center-icon { font-size: 2rem; filter: drop-shadow(0 0 10px var(--accent)); }
+
+.btn-primary {
+    width: 100%;
+    background: var(--text-main);
+    color: var(--bg);
     border: none;
-    padding: 1.5rem;
+    padding: 1.2rem;
+    font-size: 0.9rem;
     font-weight: 700;
-    font-size: 1.1rem;
     cursor: pointer;
-    margin-top: 1rem;
+    transition: 0.2s;
 }
 
-.terminal-output {
-    margin-top: 2rem;
-    background: var(--dark-grey);
+.btn-primary:hover {
+    transform: scale(1.02);
+    box-shadow: 0 10px 30px rgba(255,255,255,0.1);
+}
+
+/* Terminal */
+.terminal-footer {
+    margin-top: 2.5rem;
+    background: #000;
+    border: 1px solid var(--border);
     padding: 1rem;
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    color: #00ff00;
-    min-height: 100px;
-    border-left: 2px solid #00ff00;
+}
+
+.terminal-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    margin-bottom: 0.8rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+
+.log-content {
+    font-family: monospace;
+    font-size: 0.65rem;
+    line-height: 1.5;
+    color: #44ff44;
+    height: 60px;
+    overflow-y: auto;
+}
+
+/* Footer */
+.footer {
+    padding: 4rem 5%;
+    text-align: center;
+    border-top: 1px solid var(--border);
+}
+
+.footer-links { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; }
+.footer-links a { color: var(--text-dim); text-decoration: none; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; }
+.footer-links a:hover { color: var(--text-main); }
+
+.copyright { font-size: 0.6rem; color: #444; font-weight: 500; }
+
+@media (max-width: 768px) {
+    .hero h1 { font-size: 3.5rem; }
+    .vault-card { padding: 1.5rem; }
 }
