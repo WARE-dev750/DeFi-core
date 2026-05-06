@@ -1,175 +1,69 @@
+# Protocol Architecture: The Privacy Kernel
+
+This document describes the structural layers of the protocol, focusing on security and information flow.
+
+## 1. Structural Overview
+
+The protocol is organized into eight distinct layers to ensure total anonymity and high performance.
+
 ```mermaid
-
 graph TB
-    classDef user fill:#e74c3c,stroke:#c0392b,stroke-width:2px,color:#fff
-    classDef entry fill:#f39c12,stroke:#d35400,stroke-width:2px,color:#fff
-    classDef meta fill:#2c3e50,stroke:#1a252f,stroke-width:2px,color:#fff
-    classDef vault fill:#2980b9,stroke:#1f3a93,stroke-width:2px,color:#fff
-    classDef zk fill:#8e44ad,stroke:#5b2c6f,stroke-width:2px,color:#fff
-    classDef intent fill:#3498db,stroke:#1e5aa8,stroke-width:2px,color:#fff
-    classDef hook fill:#ff007a,stroke:#c2005d,stroke-width:2px,color:#fff
-    classDef economy fill:#27ae60,stroke:#1e8449,stroke-width:2px,color:#fff
-    classDef token fill:#e67e22,stroke:#d35400,stroke-width:2px,color:#fff
-    classDef exit fill:#27ae60,stroke:#1e8449,stroke-width:2px,color:#fff
-    classDef done fill:#27ae60,stroke:#1e8449,stroke-width:3px,color:#fff
-
-    %% ==================== LAYER 0 - ASSET ENTRY ====================
-    subgraph L0 ["LAYER 0 — ASSET ENTRY (Any Asset, Any Chain)"]
+    subgraph L0 [Asset Entry]
         direction LR
-        UserBTC["👤 BTC User"]:::user
-        UserETH["👤 ETH/WETH User"]:::user
-        UserStable["👤 USDC/DAI/USDT User"]:::user
-        UserERC20["👤 Any ERC-20 User"]:::user
-
-        tBTC["tBTC Bridge<br>Threshold Network<br>Decentralized BTC Wrapper"]:::entry
-        CCIP["Chainlink CCIP<br>Cross-Chain Messaging V3"]:::entry
+        Assets[BTC / ETH / Stables] --> Bridge[Secure Bridges]
     end
 
-    %% ==================== LAYER 1 - METADATA SHIELD ====================
-    subgraph L1 ["LAYER 1 — METADATA SHIELD (Nobody Sees Your IP)"]
-        OHTTP["OHTTP Gateway<br>Oblivious HTTP<br>Hides user IP from RPCs"]:::meta
-        SDK["VeilFi SDK<br>Generates ZK-Intents<br>Manges secret notes<br>No gas required"]:::meta
-        NoteDisc["Note Discovery<br>Scans chain for your notes<br>without leaking identity"]:::meta
+    subgraph L1 [Metadata Shield]
+        Bridge --> Gateway[Privacy Gateway]
+        Gateway --> SDK[Client SDK]
     end
 
-    %% ==================== LAYER 2 - UNIVERSAL VAULT ====================
-    subgraph L2 ["LAYER 2 — THE UNIVERSAL VAULT"]
-        direction TB
-        subgraph AssetVaults ["Asset Custody — Forked Battle-Tested"]
-            WETHVault["WETH Vault<br>OpenZeppelin ERC-4626"]:::vault
-            StableVault["Stable Vault<br>USDC/USDT/DAI"]:::vault
-            BTCVault["BTC Vault<br>tBTC Integration"]:::vault
-            ERC20Vault["Universal ERC-20 Vault<br>Permissionless"]:::vault
-        end
-
-        VeilFiVault["VeilFiVault.sol<br>Master State Controller<br>Issues private notes<br>Batch Proof Verification ✅"]:::vault
-
-        subgraph CryptoMemory ["Cryptographic Memory — BUILT TODAY ✅"]
-            Tree["IncrementalTree.sol<br>Poseidon2 + Semaphore Fork<br>Tracks all commitments"]:::done
-            Nullifiers["Nullifier Registry<br>Prevents double-spend"]:::done
-            RootHistory["Root History<br>Proofs never go stale"]:::done
-        end
+    subgraph L2 [The Vault]
+        SDK --> MasterVault[Master State Controller]
+        MasterVault --> Tree[Privacy Balance Tree]
+        MasterVault --> Registry[Nullifier Registry]
     end
 
-    %% ==================== LAYER 3 - ZK ENGINE ====================
-    subgraph L3 ["LAYER 3 — ZERO KNOWLEDGE ENGINE (Noir / UltraHonk)"]
-        Kernel["main.nr — State Kernel<br>Validates Merkle + Nullifier<br>Binds app proofs"]:::zk
-        subgraph AppCircuits ["Application Circuits"]
-            SwapNR["swap.nr"]:::zk
-            TransferNR["transfer.nr"]:::zk
-            BetNR["bet.nr — Private Bet Logic"]:::zk
-            WithdrawNR["withdraw.nr"]:::zk
-        end
-        CleanSet["clean_set.nr<br>Privacy Pools Style<br>Proves funds are clean"]:::zk
-        Verifier["HonkVerifier.sol<br>UltraHonk On-Chain Verification"]:::vault
-        Prover["Decentralized Prover Network<br>Succinct / Gevulot"]:::meta
+    subgraph L3 [Privacy Engine]
+        MasterVault --> Kernel[ZK-Privacy Kernel]
+        Kernel --> Proofs[Swap / Transfer / Compliance Proofs]
+        Kernel --> Verifier[On-Chain Verifier]
     end
 
-    %% ==================== LAYER 4 - INTENT ENGINE ====================
-    subgraph L4 ["LAYER 4 — INTENT ENGINE (Gasless Execution)"]
-        OffChainIntents["Off-Chain Intent Discovery<br>P2P Gossip Network<br>Zero-Gas intent propagation"]:::intent
-        subgraph Solvers ["Solver Network"]
-            SolverA["Solver A<br>Stakes $VeilFi"]:::intent
-            SolverB["Solver B<br>Competes for intents"]:::intent
-            SolverC["Institutional Solver<br>High volume"]:::intent
-        end
-        Slashing["Slashing Contract<br>Automatic penalties"]:::intent
-        
+    subgraph L4 [Intent Engine]
+        SDK --> Solvers[Professional Solver Network]
+        Solvers --> Execution[Gasless Execution]
     end
 
-    %% ==================== LAYER 5 - PRIVATE SWAP ENGINE ====================
-    subgraph L5 ["LAYER 5 — PRIVATE SWAP ENGINE (Uniswap v4)"]
-        Hook["VeilFiHook.sol<br>Uniswap v4 Hook<br>TSTORE privacy routing<br>Pulls from vault → AMM → vault"]:::hook
-        UniV4["Uniswap v4 Singleton<br>Public AMM Liquidity<br>5B+ TVL<br>Sees size, never identity"]:::hook
-        PrivacyOracle["PrivacyOracle.sol<br>Clean Set root only"]:::vault
+    subgraph L5 [Swap Integration]
+        Execution --> UniV4[Uniswap v4 Integration]
+        UniV4 --> MasterVault
     end
 
-    %% ==================== LAYER 6 - PRIVATE ECONOMY ====================
-    subgraph L6 ["LAYER 6 — THE PRIVATE ECONOMY"]
-        direction TB
-        BettingEngine["BettingEngine.sol<br>ZK-verified outcomes<br>Private sports & event betting"]:::economy
-        TournEngine["TournamentEngine.sol<br>Private brackets & leaderboards"]:::economy
-        YieldEngine["YieldEngine.sol<br>Time-locked yield events"]:::economy
-        CommunityEngine["CommunityEngine.sol<br>Private voting + prediction markets"]:::economy
+    subgraph L6 [Private Economy]
+        MasterVault --> Economy[Betting / Yield / Tournaments]
     end
 
-    %% ==================== LAYER 7 - TOKEN ECONOMICS ====================
-    subgraph L7 ["LAYER 7 — $VeilFi ECONOMIC ENGINE"]
-        FeeCollector["Fee Collector<br>0.20% Entry + 0.10% Exit Fee"]:::token
-
-        subgraph FeeSplit ["Fee Distribution"]
-            StakerYield["0.1% Entry Fee → Yield to Stakers"]:::economy
-            BuyBurn["0.1% Entry Fee → Buyback & Burn $VeilFi"]:::token
-            Treasury["0.1% Exit Fee → Protocol Treasury"]:::token
-        end
-
-        Staking["StakingContract.sol<br>Lock $VeilFi → Earn yield + voting power"]:::economy
-        DAO["VeilFi DAO<br>Governs fees, assets, compliance"]:::economy
+    subgraph L7 [Economic Engine]
+        Economy --> Fees[Fee Collector]
+        Fees --> Rewards[Staker Yield / Supply Burn]
     end
 
-    %% ==================== LAYER 8 - ASSET EXIT ====================
-    subgraph L8 ["LAYER 8 — ASSET EXIT (Fresh Wallet, Zero History)"]
-        FreshWallet["🆕 Fresh Wallet<br>Mathematically unlinkable"]:::user
-        ExitAny["Exit to Any Asset<br>USDC / ETH / WBTC / etc."]:::vault
+    subgraph L8 [Asset Exit]
+        MasterVault --> Exit[Fresh Wallet]
     end
-
-    %% ==================== CONNECTIONS ====================
-    %% Entry
-    UserBTC & UserETH & UserStable & UserERC20 --> CCIP & tBTC
-    CCIP & tBTC --> OHTTP
-
-    %% Metadata
-    OHTTP --> SDK
-    SDK --> OffChainIntents
-    SDK --> NoteDisc
-
-    %% Vault
-    AssetVaults --> VeilFiVault
-    SDK --> VeilFiVault
-    VeilFiVault --> Tree & Nullifiers & RootHistory
-
-    %% ZK
-    VeilFiVault --> Prover
-    Prover --> Kernel
-    Kernel --> SwapNR & TransferNR & BetNR & WithdrawNR & CleanSet
-    CleanSet --> PrivacyOracle
-    Kernel --> Verifier
-    
-
-    %% Intent
-    OffChainIntents --> Solvers
-    Solvers --> Slashing\n    Solvers --> VeilFiVault
-    
-
-    %% Swap / Hook
-    VeilFiVault --> Hook
-    Hook --> UniV4
-    UniV4 --> Hook
-    Hook --> VeilFiVault
-    Hook --> FeeCollector
-
-    %% Private Economy
-    VeilFiVault & Hook --> BettingEngine & TournEngine & YieldEngine & CommunityEngine
-
-    %% Token Economics
-    FeeCollector --> StakerYield & BuyBurn & Treasury
-    StakerYield --> Staking
-    BuyBurn --> BurnAddress["0x000... Burn Address"]
-    Staking --> DAO
-    DAO --> Economy & FeeCollector
-
-    %% Exit
-    WithdrawNR --> ExitAny
-    ExitAny --> FreshWallet
-
-    %% Styling
-    style L0 fill:#1a252f,stroke:#f39c12,stroke-width:3px
-    style L1 fill:#1a252f,stroke:#2c3e50,stroke-width:3px
-    style L2 fill:#1a252f,stroke:#2980b9,stroke-width:3px
-    style L3 fill:#1a252f,stroke:#8e44ad,stroke-width:3px
-    style L4 fill:#1a252f,stroke:#3498db,stroke-width:3px
-    style L5 fill:#1a252f,stroke:#ff007a,stroke-width:3px
-    style L6 fill:#1a252f,stroke:#27ae60,stroke-width:3px
-    style L7 fill:#1a252f,stroke:#e67e22,stroke-width:3px
-    style L8 fill:#1a252f,stroke:#27ae60,stroke-width:3px
 ```
+
+## 2. Layer Deep-Dive
+
+### The Privacy Balance Tree
+All private notes are tracked in a fixed-depth tree. When a user deposits, a new "leaf" is added. When a user withdraws, they prove knowledge of a leaf's secret without revealing which leaf it is.
+
+### The ZK-Privacy Kernel
+The kernel is the "brain" of the protocol. It is a Zero-Knowledge circuit that validates every transaction. It ensures that the input assets exist, the output assets are correctly formed, and the user has the right to spend them.
+
+### Gasless Intent Execution
+To prevent IP-leakage and simplify the user experience, users do not send transactions directly. They sign "Intents" which are picked up by a decentralized network of Solvers. Solvers pay the gas and settle the trade, taking a small fee from the user's shielded balance.
+
+### Compliance Layer (Clean Set)
+The protocol includes a built-in compliance mechanism. Users can prove that their funds are part of a "Clean Set" of deposits that have been verified to originate from safe, non-sanctioned addresses. This allows for institutional-grade privacy.
