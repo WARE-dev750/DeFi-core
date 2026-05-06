@@ -26,6 +26,9 @@
         <div class="vault-card">
             <div class="card-header">
                 <h2>Shielded Vault</h2>
+                <div style="font-size: 0.6rem; color: var(--accent-muted); margin-top: 0.5rem;" id="contractDisplay">
+                    Vault: Not Connected
+                </div>
             </div>
 
             <div class="tabs">
@@ -36,7 +39,7 @@
 
             <div class="input-container">
                 <div class="input-group">
-                    <label>Amount</label>
+                    <label>Amount (USDC)</label>
                     <div class="input-wrapper">
                         <input type="number" id="amountInput" placeholder="0.00" value="100">
                         <span class="asset-badge">USDC</span>
@@ -44,22 +47,22 @@
                 </div>
 
                 <div class="input-group">
-                    <label>Privacy Set</label>
+                    <label>Nullifier / Commitment</label>
                     <div class="input-wrapper">
-                        <span id="privacySet">Calculating...</span>
+                        <input type="text" id="idInput" placeholder="Auto-generated" readonly>
                     </div>
                 </div>
 
-                <button class="btn-action" id="actionBtn">Generate Proof</button>
+                <button class="btn-action" id="actionBtn">Connect Wallet</button>
 
                 <div class="status-log" id="statusLog">
                     <div class="status-item">
-                        <span>Network</span>
-                        <span id="networkStatus">Mainnet</span>
+                        <span>Status</span>
+                        <span id="opStatus">Idle</span>
                     </div>
                     <div class="status-item">
-                        <span>Kernel</span>
-                        <span>V3.2.0</span>
+                        <span>Privacy Set</span>
+                        <span id="privacySet">Calculating...</span>
                     </div>
                 </div>
             </div>
@@ -70,7 +73,9 @@
         © 2026 VIELFI PROTOCOL. BUILT WITH NOIR & BN254.
     </footer>
 
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js" type="application/javascript"></script>
     <script src="main.js"></script>
+
 </body>
 </html>
 
