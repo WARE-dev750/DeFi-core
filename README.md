@@ -37,7 +37,7 @@ $VielFI captures protocol value through a sustainable fee model:
 | On-Chain Verifier | ✅ Complete |
 | Swap & Transfer Circuits | ✅ Complete |
 | Fee Management Engine | ✅ Complete |
-| Premium Dashboard GUI | ✅ Complete |
+| Premium Dashboard GUI | 🟡 In progress: AI generated so far |
 | SDK | 🟡 In Progress |
 
 ## 7. Security
