@@ -12,13 +12,8 @@ pragma solidity ^0.8.21;
 library Poseidon2 {
 
     // BN254 scalar field modulus
-    uint256 internal constant Q =
-        0x30644e72e131a029b85045b68181585d2833e84879b9709142e1f0121b83e37;
-    // NOTE: Q above is wrong — correct value below
-    // 21888242871839275222246405745257275088548364400416034343698204186575808495617
-    uint256 internal constant P =
-        21888242871839275222246405745257275088548364400416034343698204186575808495617;
-
+    // BN254 scalar field modulus (Circom/Noir prime)
+    uint256 internal constant Q = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     // Internal matrix diagonal minus one (D_i - 1), verbatim from poseidon2_params.hpp
     uint256 private constant D0 = 0x10dc6e9c006ea38b04b1e03b4bd9490c0d03f98929ca1d7fb56821fd19d3b6e7;
     uint256 private constant D1 = 0x0c28145b6a44df3e0149b3d0a30b3bb599df9756d4dd9b84a86b38cfb45a740b;
@@ -33,8 +28,8 @@ library Poseidon2 {
     /// @dev Equivalent to poseidon2_permutation([left, right, 0, 0], 4)[0] in Noir.
     function hash(uint256 left, uint256 right) internal pure returns (uint256) {
         uint256[4] memory state;
-        state[0] = left % P;
-        state[1] = right % P;
+        state[0] = left % Q;
+        state[1] = right % Q;
         state[2] = 0;
         state[3] = 0;
         _permutationInplace(state);
@@ -101,10 +96,10 @@ library Poseidon2 {
         uint256 rc0, uint256 rc1, uint256 rc2, uint256 rc3
     ) private pure {
         // Add round constants
-        s[0] = addmod(s[0], rc0, P);
-        s[1] = addmod(s[1], rc1, P);
-        s[2] = addmod(s[2], rc2, P);
-        s[3] = addmod(s[3], rc3, P);
+        s[0] = addmod(s[0], rc0, Q);
+        s[1] = addmod(s[1], rc1, Q);
+        s[2] = addmod(s[2], rc2, Q);
+        s[3] = addmod(s[3], rc3, Q);
         // S-box all 4
         s[0] = _sbox(s[0]);
         s[1] = _sbox(s[1]);
@@ -116,7 +111,7 @@ library Poseidon2 {
 
     function _partialRound(uint256[4] memory s, uint256 rc0) private pure {
         // Add round constant to s[0] only
-        s[0] = addmod(s[0], rc0, P);
+        s[0] = addmod(s[0], rc0, Q);
         // S-box s[0] only
         s[0] = _sbox(s[0]);
         // Internal MDS
@@ -128,9 +123,9 @@ library Poseidon2 {
     // -------------------------------------------------------------------------
 
     function _sbox(uint256 x) private pure returns (uint256) {
-        uint256 x2 = mulmod(x, x, P);
-        uint256 x4 = mulmod(x2, x2, P);
-        return mulmod(x4, x, P);
+        uint256 x2 = mulmod(x, x, Q);
+        uint256 x4 = mulmod(x2, x2, Q);
+        return mulmod(x4, x, Q);
     }
 
     // -------------------------------------------------------------------------
@@ -139,18 +134,18 @@ library Poseidon2 {
     // -------------------------------------------------------------------------
 
     function _mdsExternal(uint256[4] memory s) private pure {
-        uint256 t0 = addmod(s[0], s[1], P);           // A + B
-        uint256 t1 = addmod(s[2], s[3], P);           // C + D
-        uint256 t2 = addmod(addmod(s[1], s[1], P), t1, P); // 2B + C + D
-        uint256 t3 = addmod(addmod(s[3], s[3], P), t0, P); // 2D + A + B
-        uint256 t4 = addmod(t1, t1, P);
-        t4 = addmod(t4, t4, P);
-        t4 = addmod(t4, t3, P);                        // A + B + 4C + 6D
-        uint256 t5 = addmod(t0, t0, P);
-        t5 = addmod(t5, t5, P);
-        t5 = addmod(t5, t2, P);                        // 4A + 6B + C + D
-        uint256 t6 = addmod(t3, t5, P);                // 5A + 7B + C + 3D
-        uint256 t7 = addmod(t2, t4, P);                // A + 3B + 5C + 7D
+        uint256 t0 = addmod(s[0], s[1], Q);           // A + B
+        uint256 t1 = addmod(s[2], s[3], Q);           // C + D
+        uint256 t2 = addmod(addmod(s[1], s[1], Q), t1, Q); // 2B + C + D
+        uint256 t3 = addmod(addmod(s[3], s[3], Q), t0, Q); // 2D + A + B
+        uint256 t4 = addmod(t1, t1, Q);
+        t4 = addmod(t4, t4, Q);
+        t4 = addmod(t4, t3, Q);                        // A + B + 4C + 6D
+        uint256 t5 = addmod(t0, t0, Q);
+        t5 = addmod(t5, t5, Q);
+        t5 = addmod(t5, t2, Q);                        // 4A + 6B + C + D
+        uint256 t6 = addmod(t3, t5, Q);                // 5A + 7B + C + 3D
+        uint256 t7 = addmod(t2, t4, Q);                // A + 3B + 5C + 7D
         s[0] = t6;
         s[1] = t5;
         s[2] = t7;
@@ -163,11 +158,11 @@ library Poseidon2 {
     // -------------------------------------------------------------------------
 
     function _mdsInternal(uint256[4] memory s) private pure {
-        uint256 sum = addmod(addmod(s[0], s[1], P), addmod(s[2], s[3], P), P);
-        s[0] = addmod(mulmod(D0, s[0], P), sum, P);
-        s[1] = addmod(mulmod(D1, s[1], P), sum, P);
-        s[2] = addmod(mulmod(D2, s[2], P), sum, P);
-        s[3] = addmod(mulmod(D3, s[3], P), sum, P);
+        uint256 sum = addmod(addmod(s[0], s[1], Q), addmod(s[2], s[3], Q), Q);
+        s[0] = addmod(mulmod(D0, s[0], Q), sum, Q);
+        s[1] = addmod(mulmod(D1, s[1], Q), sum, Q);
+        s[2] = addmod(mulmod(D2, s[2], Q), sum, Q);
+        s[3] = addmod(mulmod(D3, s[3], Q), sum, Q);
     }
 
     // -------------------------------------------------------------------------

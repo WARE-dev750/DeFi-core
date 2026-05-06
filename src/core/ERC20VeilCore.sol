@@ -45,39 +45,39 @@ contract ERC20VeilCore is VeilCore {
     }
 
     /// @inheritdoc VeilCore
-    /// @dev Pull `denomination` tokens from depositor, collect 0.2% entry fee.
-    ///      User receives shielded commitment for (denomination - fee).
+    /// @dev Pull `denomination` tokens from depositor, collect 0.2% entry fee via FeeManager.
     function _processDeposit(uint256 denomination) internal override {
         require(msg.value == 0, "ETH not accepted");
-        
-        // Calculate entry fee: 0.2%
-        uint256 fee = (denomination * ENTRY_FEE_BPS) / FEE_DENOMINATOR;
-        uint256 netAmount = denomination - fee;
         
         // Pull full amount from depositor
         token.safeTransferFrom(msg.sender, address(this), denomination);
         
-        // Send fee to FeeManager for buyback engine
-        if (fee > 0 && address(feeManager) != address(0)) {
-            token.safeTransfer(address(feeManager), fee);
+        // Collect fee via FeeManager
+        if (address(feeManager) != address(0)) {
+            token.safeIncreaseAllowance(address(feeManager), denomination);
+            feeManager.collectEntryFee(address(token), denomination);
         }
     }
 
     /// @inheritdoc VeilCore
-    /// @dev Push `denomination - exitFee - relayerFee` to recipient.
-    ///      Exit fee (0.1%) goes to FeeManager treasury.
+    /// @dev Push `remainingAfterFees - relayerFee` to recipient.
+    ///      Exit fee (0.1%) is collected via FeeManager.
     function _processWithdraw(
         address payable recipient,
         address payable relayer,
         uint256 denomination,
         uint256 relayerFee
     ) internal override {
-        // Calculate exit fee: 0.1%
-        uint256 exitFee = (denomination * EXIT_FEE_BPS) / FEE_DENOMINATOR;
-        uint256 remainingAfterExitFee = denomination - exitFee;
+        // Collect exit fee via FeeManager (it returns the net amount)
+        uint256 netAmount;
+        if (address(feeManager) != address(0)) {
+            netAmount = feeManager.collectExitFee(address(token), denomination);
+        } else {
+            netAmount = denomination;
+        }
         
-        // Calculate what recipient gets after both fees
-        uint256 recipientAmount = remainingAfterExitFee - relayerFee;
+        // Calculate what recipient gets after fees
+        uint256 recipientAmount = netAmount - relayerFee;
         
         // Transfer to recipient
         token.safeTransfer(recipient, recipientAmount);
@@ -86,11 +86,6 @@ contract ERC20VeilCore is VeilCore {
         if (relayerFee > 0) {
             address feeRecipient = address(relayer) != address(0) ? address(relayer) : msg.sender;
             token.safeTransfer(feeRecipient, relayerFee);
-        }
-        
-        // Send exit fee to FeeManager (accumulates for treasury)
-        if (exitFee > 0 && address(feeManager) != address(0)) {
-            token.safeTransfer(address(feeManager), exitFee);
         }
     }
 }

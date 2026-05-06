@@ -43,7 +43,7 @@ contract DeployVeilFi is Script {
         
         // PoolManager address - Sepolia v4: 0xE8bD44a79E05cAf4A1F2C64845dB4953A5D5a6D
         // For local/testing, use a mock or skip swaps
-        address poolManager = address(0); // Set to real v4 PoolManager for mainnet/testnet
+        address poolManager = 0xE8bD44a79E05cAf4A1F2C64845dB4953A5D5a6D; // Set to real v4 PoolManager for mainnet/testnet
         
         FeeManager feeManager = new FeeManager(
             mockVeilToken,
@@ -61,6 +61,10 @@ contract DeployVeilFi is Script {
         // (one per denomination) to further anonymise the anonymity set.
         ERC20VeilCore vault = new ERC20VeilCore(address(verifier), address(usdc), address(feeManager), depositCap);
         console.log("ERC20VeilCore deployed:", address(vault));
+        
+        // Authorize vault in FeeManager
+        feeManager.authorizeVault(address(vault), true);
+        console.log("Vault authorized in FeeManager");
         console.log("Deposit Cap:           ", depositCap / 1e6, "USDC");
         
         // Log FeeManager configuration
