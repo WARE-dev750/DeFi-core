@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VielFi | Private DeFi Primitive</title>
+    <meta name="description" content="VielFi - Layer-2 Native Privacy Primitive & Shielded Asset Vault. Anonymize your assets with zero-knowledge proofs.">
+    <link rel="stylesheet" href="index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="glow"></div>
+    
+    <nav>
+        <div class="logo">VIEL<span>FI</span></div>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#vault">Vault</a>
+            <a href="#docs">Docs</a>
+        </div>
+        <button class="connect-btn" id="connectWallet">Connect Wallet</button>
+    </nav>
+
+    <header>
+        <div class="hero">
+            <h1>Shield Your <span>Wealth</span></h1>
+            <p>The ultimate privacy layer for decentralized finance. Powered by Noir ZK-Proofs and Uniswap v4 Hooks.</p>
+            <div class="cta-group">
+                <button class="primary-btn">Enter the Shield</button>
+                <button class="secondary-btn">Read Whitepaper</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section id="vault" class="vault-preview">
+            <div class="glass-card">
+                <h2>Vault Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="label">Total Shielded Value</span>
+                        <span class="value">$1,240,500</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Anonymity Set</span>
+                        <span class="value">428 Users</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Protocol Fees</span>
+                        <span class="value">0.2% / 0.1%</span>
+                    </div>
+                </div>
+                <div class="shield-animation">
+                    <div class="ring"></div>
+                    <div class="ring"></div>
+                    <div class="ring"></div>
+                    <div class="core-icon">🛡️</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <div class="feature-card">
+                <h3>Private Swaps</h3>
+                <p>Swap assets within the shield using our custom Uniswap v4 hooks. Zero slippage leakage.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Clean Set Compliance</h3>
+                <p>Stay compliant with ZK-proofs that verify your funds originate from non-sanctioned sources.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Gasless Intents</h3>
+                <p>Solvers execute your private intents and pay gas, so you stay completely anonymous.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 VielFi Protocol. Built on BN254 & Noir.</p>
+        <div class="socials">
+            <a href="#">X / Twitter</a>
+            <a href="#">GitHub</a>
+            <a href="#">Discord</a>
+        </div>
+    </footer>
+
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+    <script src="main.js"></script>
+</body>
+</html>
