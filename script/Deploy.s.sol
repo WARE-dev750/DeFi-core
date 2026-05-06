@@ -32,10 +32,15 @@ contract DeployVeilFi is Script {
         HonkVerifier verifier = new HonkVerifier();
         console.log("HonkVerifier deployed: ", address(verifier));
 
+        // FeeManager placeholder - deploy FeeManager first then update
+        address feeManager = address(0); // TODO: Deploy FeeManager first
+        uint256 depositCap = 500_000 * 1e6; // $500k USDC guarded launch cap
+        
         // One vault instance. In production, deploy multiple instances
         // (one per denomination) to further anonymise the anonymity set.
-        ERC20VeilCore vault = new ERC20VeilCore(address(verifier), address(usdc));
+        ERC20VeilCore vault = new ERC20VeilCore(address(verifier), address(usdc), feeManager, depositCap);
         console.log("ERC20VeilCore deployed:", address(vault));
+        console.log("Deposit Cap:           ", depositCap / 1e6, "USDC");
 
         vm.stopBroadcast();
 

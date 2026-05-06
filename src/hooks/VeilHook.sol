@@ -22,6 +22,7 @@ import {BalanceDelta} from "v4-core/types/BalanceDelta.sol";
 import {BeforeSwapDelta} from "v4-core/types/BeforeSwapDelta.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @dev Interface to VeilCore vault
 interface IVeilVault {
@@ -39,12 +40,21 @@ interface IUltraHonkVerifier {
 /// @notice Uniswap v4 hook enabling private swaps through VeilCore vault
 /// @dev All swaps are gasless for users - solvers pay gas and earn fees
 /// @dev Implements IHooks directly instead of using BaseHook to minimize dependencies
-contract VeilHook is IHooks {
+contract VeilHook is IHooks, Ownable {
     using PoolIdLibrary for PoolKey;
     using CurrencyLibrary for Currency;
     using SafeERC20 for IERC20;
     
     IPoolManager public immutable poolManager;
+    
+    // ── Safety: Rate limiting ─────────────────────────────────────────────────
+    uint256 public constant MAX_SWAPS_PER_HOUR = 100;
+    uint256 public swapCountThisHour;
+    uint256 public currentHourStart;
+    
+    // ── Safety: Emergency pause ───────────────────────────────────────────────
+    bool public paused;
+    address public guardian;
 
     // ── Constants ────────────────────────────────────────────────────────────
     uint256 public constant SNARK_SCALAR_FIELD =
@@ -105,16 +115,44 @@ contract VeilHook is IHooks {
     error InvalidTokenPair();
     error SolverFeeTooHigh();
     error InvalidOutputCommitment();
+    error Paused();
+    error RateLimitExceeded();
+    error InvalidGuardian();
 
     // ── Constructor ──────────────────────────────────────────────────────────
     constructor(
         IPoolManager _poolManager,
         address _vault,
-        address _verifier
-    ) {
+        address _verifier,
+        address _guardian
+    ) Ownable(msg.sender) {
         poolManager = _poolManager;
         vault = IVeilVault(_vault);
         verifier = IUltraHonkVerifier(_verifier);
+        guardian = _guardian;
+        currentHourStart = block.timestamp / 1 hours;
+    }
+    
+    // ── Modifiers ─────────────────────────────────────────────────────────────
+    modifier whenNotPaused() {
+        if (paused) revert Paused();
+        _;
+    }
+    
+    modifier checkRateLimit() {
+        uint256 currentHour = block.timestamp / 1 hours;
+        if (currentHour > currentHourStart) {
+            currentHourStart = currentHour;
+            swapCountThisHour = 0;
+        }
+        if (swapCountThisHour >= MAX_SWAPS_PER_HOUR) revert RateLimitExceeded();
+        swapCountThisHour++;
+        _;
+    }
+    
+    modifier onlyGuardian() {
+        if (msg.sender != guardian && msg.sender != owner()) revert InvalidGuardian();
+        _;
     }
     
     /// @notice Returns the hook's permissions bitmap for Uniswap v4
@@ -125,11 +163,32 @@ contract VeilHook is IHooks {
     }
 
     // ── Admin ──────────────────────────────────────────────────────────────────
-    function authorizePool(PoolKey calldata key) external {
-        // In production: add access control
+    /// @notice Authorize a pool for private swaps. Only owner can call.
+    function authorizePool(PoolKey calldata key) external onlyOwner {
         PoolId poolId = key.toId();
         authorizedPools[poolId] = true;
         emit PoolAuthorized(poolId, Currency.unwrap(key.currency0), Currency.unwrap(key.currency1));
+    }
+    
+    /// @notice Revoke pool authorization. Only owner can call.
+    function deauthorizePool(PoolKey calldata key) external onlyOwner {
+        PoolId poolId = key.toId();
+        authorizedPools[poolId] = false;
+    }
+    
+    /// @notice Set the guardian address (3-of-5 multisig). Only owner can call.
+    function setGuardian(address _guardian) external onlyOwner {
+        guardian = _guardian;
+    }
+    
+    /// @notice Emergency pause all swaps. Guardian or owner can call.
+    function pause() external onlyGuardian {
+        paused = true;
+    }
+    
+    /// @notice Unpause swaps. Only owner can call (requires higher authority).
+    function unpause() external onlyOwner {
+        paused = false;
     }
 
     // ── Core Hook: Before Swap ─────────────────────────────────────────────────
@@ -140,7 +199,7 @@ contract VeilHook is IHooks {
         PoolKey calldata key,
         IPoolManager.SwapParams calldata params,
         bytes calldata hookData
-    ) external returns (bytes4, BeforeSwapDelta, uint24) {
+    ) external whenNotPaused checkRateLimit returns (bytes4, BeforeSwapDelta, uint24) {
         // Only PoolManager can call
         if (msg.sender != address(poolManager)) revert InvalidProof();
 

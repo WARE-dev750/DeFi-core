@@ -37,7 +37,11 @@ contract ERC20VeilCoreTest is Test {
     function setUp() public {
         token    = new MockERC20("USDC", "USDC", 6);
         verifier = new MockVerifier();
-        vault    = new ERC20VeilCore(address(verifier), address(token));
+        
+        // Deploy with safety modules (CTO Spec V2)
+        address feeManager = address(0); // Mock fee manager for testing
+        uint256 depositCap = 1_000_000 * 1e6; // $1M cap for tests
+        vault    = new ERC20VeilCore(address(verifier), address(token), feeManager, depositCap);
 
         SMALL  = vault.DENOM_SMALL();
         MEDIUM = vault.DENOM_MEDIUM();
