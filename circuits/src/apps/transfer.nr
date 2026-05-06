@@ -12,41 +12,53 @@ fn main(
     change_secret: Field,
     change_nullifier: Field,
     
-    input_commitment: pub Field,
-    sender_nullifier_hash: pub Field,
-    merkle_root: pub Field,
-    token: pub Field,
-    input_amount: pub Field,
-    recipient_commitment: pub Field,
-    change_commitment: pub Field,
+    // Standard App Interface V2
+    input_commitment: pub Field,      // 0
+    input_nullifier_hash: pub Field,  // 1
+    merkle_root: pub Field,           // 2
+    token: pub Field,                 // 3
+    input_amount: pub Field,          // 4
+    recipient_commitment: pub Field,  // 5 (output 1)
+    recipient: pub Field,             // 6
+    relayer: pub Field,               // 7
+    fee: pub Field,                   // 8
+    
+    // Transfer Specific
+    change_commitment: pub Field,     // 9 (output 2)
 ) {
+    // 1. Input commitment binding
     let computed_input_commitment = std::hash::poseidon2_permutation(
         [sender_secret, sender_nullifier, token, input_amount], 4
     )[0];
     assert(computed_input_commitment == input_commitment, "Invalid input commitment");
     
+    // 2. Nullifier binding
     let computed_nullifier_hash = std::hash::poseidon2_permutation(
         [sender_nullifier, input_commitment, 0, 0], 4
     )[0];
-    assert(computed_nullifier_hash == sender_nullifier_hash, "Invalid nullifier");
+    assert(computed_nullifier_hash == input_nullifier_hash, "Invalid nullifier");
     
+    // 3. Merkle proof
     let computed_root = compute_merkle_root(input_commitment, merkle_path, merkle_indices);
     assert(computed_root == merkle_root, "Invalid merkle root");
     
+    // 4. Amount conservation (Underflow protected)
     if has_change {
         let change_amount = input_amount - transfer_amount;
         let reconstructed_input = transfer_amount + change_amount;
         assert(reconstructed_input == input_amount, "Amount conservation violated");
-        assert(change_amount != 0, "Change amount cannot be zero when has_change is true");
+        assert(change_amount != 0, "Change cannot be zero when has_change is true");
     } else {
         assert(transfer_amount == input_amount, "Transfer must equal input when no change");
     }
     
+    // 5. Output 1 (Recipient)
     let computed_recipient_commitment = std::hash::poseidon2_permutation(
         [recipient_output_secret, recipient_output_nullifier, token, transfer_amount], 4
     )[0];
     assert(computed_recipient_commitment == recipient_commitment, "Recipient commitment mismatch");
     
+    // 6. Output 2 (Change)
     if has_change {
         let change_amount = input_amount - transfer_amount;
         let computed_change_commitment = std::hash::poseidon2_permutation(
