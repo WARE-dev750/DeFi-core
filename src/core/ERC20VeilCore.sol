@@ -8,9 +8,13 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 interface IFeeManager {
-    function collectEntryFee(address token, uint256 amount) external returns (uint256 netAmount);
-    function collectExitFee(address token, uint256 amount) external returns (uint256 netAmount);
+    function collectEntryFee(address token, uint256 amount) external;
+    function collectExitFee(address token, uint256 amount) external;
+    function ENTRY_FEE_BPS() external view returns (uint256);
+    function EXIT_FEE_BPS() external view returns (uint256);
+    function FEE_DENOMINATOR() external view returns (uint256);
 }
+
 
 contract ERC20VeilCore is VeilCore {
     using SafeERC20 for IERC20;
@@ -35,10 +39,18 @@ contract ERC20VeilCore is VeilCore {
 
     function _processDeposit(uint256 _denomination) internal override {
         require(msg.value == 0, "ETH not accepted");
-        token.safeTransferFrom(msg.sender, address(this), _denomination);
+        
+        uint256 entryFee = 0;
         if (address(feeManager) != address(0)) {
-            token.safeIncreaseAllowance(address(feeManager), _denomination);
-            feeManager.collectEntryFee(address(token), _denomination);
+            entryFee = (_denomination * feeManager.ENTRY_FEE_BPS()) / feeManager.FEE_DENOMINATOR();
+        }
+
+        uint256 totalAmount = _denomination + entryFee;
+        token.safeTransferFrom(msg.sender, address(this), totalAmount);
+        
+        if (entryFee > 0) {
+            token.safeTransfer(address(feeManager), entryFee);
+            feeManager.collectEntryFee(address(token), entryFee);
         }
     }
 
@@ -48,14 +60,16 @@ contract ERC20VeilCore is VeilCore {
         uint256 _denomination,
         uint256 relayerFee
     ) internal override {
-        uint256 netAmount;
+        uint256 exitFee = 0;
         if (address(feeManager) != address(0)) {
-            netAmount = feeManager.collectExitFee(address(token), _denomination);
-        } else {
-            netAmount = _denomination;
+            exitFee = (_denomination * feeManager.EXIT_FEE_BPS()) / feeManager.FEE_DENOMINATOR();
+            token.safeTransfer(address(feeManager), exitFee);
+            feeManager.collectExitFee(address(token), exitFee);
         }
         
+        uint256 netAmount = _denomination - exitFee;
         uint256 recipientAmount = netAmount - relayerFee;
+        
         token.safeTransfer(recipient, recipientAmount);
         
         if (relayerFee > 0) {
@@ -64,3 +78,4 @@ contract ERC20VeilCore is VeilCore {
         }
     }
 }
+

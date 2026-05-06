@@ -3,96 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIELFI // THE PRIVACY KERNEL</title>
+    <title>VielFi | The Privacy Kernel</title>
     <link rel="stylesheet" href="index.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="background-grain"></div>
-    <div class="ambient-glow"></div>
+    <div class="background-glow"></div>
 
-    <nav class="nav-container">
-        <div class="logo">VIEL<span>FI</span></div>
-        <div class="nav-right">
-            <span class="protocol-version">PROTOCOL V3.0</span>
-            <button id="connectBtn" class="btn-connect">CONNECT_WALLET</button>
-        </div>
+    <nav>
+        <div class="logo">VIELFI</div>
+        <button id="connectBtn" class="btn-connect">Connect Wallet</button>
     </nav>
 
-    <section class="hero">
-        <div class="hero-content">
-            <h1 class="reveal-text">ANONYMITY IS <br>THE NEW <span>ASSET CLASS</span></h1>
-            <p class="sub-text">The professional privacy primitive for the Ethereum ecosystem. Shield assets, perform private swaps, and verify compliance with Zero-Knowledge proofs.</p>
-        </div>
-    </section>
+    <header class="hero">
+        <h1>Anonymity is a <br><span>Human Right</span></h1>
+        <p>Institutional grade privacy for the Ethereum ecosystem. Shield your assets and transact with Zero-Knowledge proofs.</p>
+    </header>
 
-    <section class="app-container">
+    <main class="main-app">
         <div class="vault-card">
             <div class="card-header">
-                <div class="vault-id">VAULT_ID: 0x8F...E44D</div>
-                <div class="status-indicator">
-                    <span class="dot"></span> SECURE_NODE
-                </div>
+                <h2>Shielded Vault</h2>
             </div>
 
-            <div class="card-tabs">
-                <button class="tab-link active" onclick="switchTab('shield')">SHIELD</button>
-                <button class="tab-link" onclick="switchTab('unshield')">UNSHIELD</button>
-                <button class="tab-link" onclick="switchTab('swap')">SWAP</button>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="shield">Shield</button>
+                <button class="tab-btn" data-tab="unshield">Unshield</button>
+                <button class="tab-btn" data-tab="swap">Swap</button>
             </div>
 
-            <div id="shieldTab" class="tab-panel active">
-                <div class="input-stack">
-                    <div class="input-group">
-                        <label>ASSET_SELECTION</label>
-                        <div class="custom-select">
-                            <div class="select-trigger">USDC (6 DECIMALS)</div>
-                        </div>
-                    </div>
-
-                    <div class="input-group">
-                        <label>DENOMINATION_BUCKET</label>
-                        <div class="denom-grid">
-                            <button class="denom-btn active">100</button>
-                            <button class="denom-btn">1,000</button>
-                            <button class="denom-btn">10,000</button>
-                        </div>
+            <div class="input-container">
+                <div class="input-group">
+                    <label>Amount</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="amountInput" placeholder="0.00" value="100">
+                        <span class="asset-badge">USDC</span>
                     </div>
                 </div>
 
-                <div class="vault-visual">
-                    <div class="inner-circle"></div>
-                    <div class="outer-ring"></div>
-                    <div class="center-icon">🛡️</div>
+                <div class="input-group">
+                    <label>Privacy Set</label>
+                    <div class="input-wrapper">
+                        <span id="privacySet">Calculating...</span>
+                    </div>
                 </div>
 
-                <button class="btn-primary" id="shieldBtn">GENERATE_ZK_PROOF</button>
-            </div>
+                <button class="btn-action" id="actionBtn">Generate Proof</button>
 
-            <div class="terminal-footer">
-                <div class="terminal-header">
-                    <span>KERNEL_LOG</span>
-                    <span>READY</span>
-                </div>
-                <div id="logContent" class="log-content">
-                    > SYSTEM_INITIALIZED... <br>
-                    > WAITING_FOR_USER_INTENT...
+                <div class="status-log" id="statusLog">
+                    <div class="status-item">
+                        <span>Network</span>
+                        <span id="networkStatus">Mainnet</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Kernel</span>
+                        <span>V3.2.0</span>
+                    </div>
                 </div>
             </div>
         </div>
-    </section>
+    </main>
 
-    <footer class="footer">
-        <div class="footer-links">
-            <a href="#">WHITE_PAPER</a>
-            <a href="#">SECURITY_AUDIT</a>
-            <a href="#">GITHUB_CORE</a>
-        </div>
-        <div class="copyright">© 2026 VIELFI PROTOCOL. BUILT WITH NOIR.</div>
+    <footer>
+        © 2026 VIELFI PROTOCOL. BUILT WITH NOIR & BN254.
     </footer>
 
     <script src="main.js"></script>
 </body>
 </html>
+

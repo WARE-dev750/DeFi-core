@@ -9,11 +9,12 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import {IPoolManager} from "v4-core/interfaces/IPoolManager.sol";
+import {IUnlockCallback} from "v4-core/interfaces/callback/IUnlockCallback.sol";
 import {PoolKey} from "v4-core/types/PoolKey.sol";
 import {Currency, CurrencyLibrary} from "v4-core/types/Currency.sol";
 import {BalanceDelta, toBalanceDelta} from "v4-core/types/BalanceDelta.sol";
 
-contract FeeManager is Ownable, ReentrancyGuard {
+contract FeeManager is Ownable, ReentrancyGuard, IUnlockCallback {
     using SafeERC20 for IERC20;
     using CurrencyLibrary for Currency;
 
@@ -55,6 +56,12 @@ contract FeeManager is Ownable, ReentrancyGuard {
     error SwapFailed();
     error Paused();
     
+    struct SwapCallbackData {
+        address token;
+        PoolKey poolKey;
+        IPoolManager.SwapParams params;
+    }
+
     modifier whenNotPaused() { if (paused) revert Paused(); _; }
     modifier onlyVault() { if (!isAuthorizedVault[msg.sender]) revert Unauthorized(); _; }
     modifier onlyKeeper() { if (!isKeeper[msg.sender] && msg.sender != owner()) revert Unauthorized(); _; }
@@ -76,24 +83,20 @@ contract FeeManager is Ownable, ReentrancyGuard {
         isKeeper[msg.sender] = true;
     }
     
-    function collectEntryFee(address token, uint256 amount) 
-        external whenNotPaused onlyVault returns (uint256 netAmount) 
+    function collectEntryFee(address token, uint256 fee) 
+        external whenNotPaused onlyVault 
     {
-        uint256 fee = (amount * ENTRY_FEE_BPS) / FEE_DENOMINATOR;
-        netAmount = amount - fee;
-        IERC20(token).safeTransferFrom(msg.sender, address(this), fee);
         entryFeeBalance[token] += fee;
-        emit EntryFeeCollected(token, amount, fee);
+        emit EntryFeeCollected(token, 0, fee);
     }
     
-    function collectExitFee(address token, uint256 amount)
-        external whenNotPaused onlyVault returns (uint256 netAmount)
+    function collectExitFee(address token, uint256 fee)
+        external whenNotPaused onlyVault
     {
-        uint256 fee = (amount * EXIT_FEE_BPS) / FEE_DENOMINATOR;
-        netAmount = amount - fee;
         exitFeeBalance[token] += fee;
-        emit ExitFeeCollected(token, amount, fee);
+        emit ExitFeeCollected(token, 0, fee);
     }
+
     
     function executeBuyback(
         address token,
@@ -114,39 +117,51 @@ contract FeeManager is Ownable, ReentrancyGuard {
         entryFeeBalance[token] = 0;
         swapCountThisHour++;
         
-        IERC20(token).safeApprove(address(poolManager), balance);
-        
         IPoolManager.SwapParams memory params = IPoolManager.SwapParams({
             zeroForOne: zeroForOne,
-            amountSpecified: int256(balance),
+            amountSpecified: -int256(balance), // exact input
             sqrtPriceLimitX96: sqrtPriceLimitX96
         });
+
+        bytes memory data = abi.encode(SwapCallbackData({
+            token: token,
+            poolKey: poolKey,
+            params: params
+        }));
+
+        poolManager.unlock(data);
+    }
+
+    function unlockCallback(bytes calldata data) external override returns (bytes memory) {
+        if (msg.sender != address(poolManager)) revert Unauthorized();
+
+        SwapCallbackData memory callbackData = abi.decode(data, (SwapCallbackData));
+        
+        BalanceDelta delta = poolManager.swap(callbackData.poolKey, callbackData.params, "");
+
+        // Settle input tokens
+        Currency inputCurrency = callbackData.params.zeroForOne ? callbackData.poolKey.currency0 : callbackData.poolKey.currency1;
+        uint256 amountToPay = uint256(uint128(callbackData.params.zeroForOne ? -delta.amount0() : -delta.amount1()));
+        
+        IERC20(Currency.unwrap(inputCurrency)).safeTransfer(address(poolManager), amountToPay);
+        poolManager.settle();
+
+        // Take output tokens (VEIL)
+        Currency outputCurrency = callbackData.params.zeroForOne ? callbackData.poolKey.currency1 : callbackData.poolKey.currency0;
+        uint256 amountToTake = uint256(uint128(callbackData.params.zeroForOne ? delta.amount1() : delta.amount0()));
         
         uint256 veilBalanceBefore = veilToken.balanceOf(address(this));
-        
-        try poolManager.swap(poolKey, params, "") returns (BalanceDelta) {
-            uint256 veilReceived = veilToken.balanceOf(address(this)) - veilBalanceBefore;
-            if (veilReceived > 0) {
-                uint256 half = veilReceived / 2;
-                if (stakingContract != address(0)) veilToken.safeTransfer(stakingContract, half);
-                if (burnAddress != address(0)) veilToken.safeTransfer(burnAddress, veilReceived - half);
-                emit BuybackExecuted(token, balance, veilReceived);
-            }
-        } catch {
-            entryFeeBalance[token] = balance;
-            revert SwapFailed();
+        poolManager.take(outputCurrency, address(this), amountToTake);
+        uint256 veilReceived = veilToken.balanceOf(address(this)) - veilBalanceBefore;
+
+        if (veilReceived > 0) {
+            uint256 half = veilReceived / 2;
+            if (stakingContract != address(0)) veilToken.safeTransfer(stakingContract, half);
+            if (burnAddress != address(0)) veilToken.safeTransfer(burnAddress, veilReceived - half);
+            emit BuybackExecuted(callbackData.token, uint256(-callbackData.params.amountSpecified), veilReceived);
         }
-    }
-    
-    function afterSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata, BalanceDelta delta, bytes calldata) 
-        external returns (bytes4) 
-    {
-        require(msg.sender == address(poolManager), "Only PoolManager");
-        if (delta.amount0() > 0) poolManager.settle(key.currency0);
-        if (delta.amount1() > 0) poolManager.settle(key.currency1);
-        if (delta.amount0() < 0) poolManager.take(key.currency0, address(this), uint256(uint128(-delta.amount0())));
-        if (delta.amount1() < 0) poolManager.take(key.currency1, address(this), uint256(uint128(-delta.amount1())));
-        return this.afterSwap.selector;
+
+        return "";
     }
     
     function sweepExitFees(address token) external whenNotPaused nonReentrant {
@@ -165,3 +180,4 @@ contract FeeManager is Ownable, ReentrancyGuard {
     function pause() external onlyOwner { paused = true; }
     function unpause() external onlyOwner { paused = false; }
 }
+

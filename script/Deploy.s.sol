@@ -20,7 +20,7 @@ contract DeployScript is Script {
 
         // Parameters
         address token = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // USDC (Sepolia)
-        address poolManager = 0xE8bD44a79E05cAf4A1F2C64845dB4953A5D5a6D; // Uni v4 Sepolia
+        address poolManager = 0xE8bd44a79E05caf4A1F2C64845DB4953A5d5A6d0; // Uni v4 Sepolia
         uint256 denomination = 100 * 1e6; // 100 USDC
         uint256 depositCap = 500_000 * 1e6; // 500k USDC
 
